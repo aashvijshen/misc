@@ -1,0 +1,14 @@
+# Ignore all files and directories by default
+*
+
+# Allow projects hierarchy
+!projects/
+!projects/**/
+
+# Whitelist only 3D CAD and mesh files in projects
+!projects/**/*.FCStd
+!projects/**/*.step
+!projects/**/*.stl
+
+# Track this .gitignore
+!.gitignore
