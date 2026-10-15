@@ -5,6 +5,26 @@
 !projects/
 !projects/**/
 
+# Allow tools hierarchy
+!tools/
+!tools/**/
+!tools/habitree/**
+!tools/mapmaker/**
+
+# Never track output generated files in tools/habitree and tools/mapmaker
+tools/habitree/output/
+tools/habitree/output/**
+tools/mapmaker/exports/
+tools/mapmaker/exports/**
+tools/mapmaker/output_*/
+tools/mapmaker/output_*/**
+tools/mapmaker/tests/output*/
+tools/mapmaker/tests/output*/**
+tools/mapmaker/**/.cache/
+tools/mapmaker/**/.cache/**
+**/__pycache__/**
+**/*.pyc
+
 # Whitelist only 3D CAD and mesh files in projects
 !projects/**/*.FCStd
 !projects/**/*.step

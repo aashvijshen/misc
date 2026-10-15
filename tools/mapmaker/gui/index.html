@@ -1,0 +1,2344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MapMaker 3D - Precision 3D Print Generator</title>
+  
+  <!-- Leaflet 2D Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <!-- Three.js 3D WebGL -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #12141a;
+      --bg-panel: #1a1d26;
+      --bg-card: #232734;
+      --border-color: #313647;
+      --accent: #ff6b2b; /* Bambu orange */
+      --accent-hover: #ff854d;
+      --text-main: #f0f2f5;
+      --text-muted: #9aa0b0;
+      --success: #10b981;
+      --cyan: #06b6d4;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg-dark); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* Header */
+    header {
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border-color);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.15rem; }
+    .brand-badge { background: var(--accent); color: #fff; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; text-transform: uppercase; }
+    
+    .search-bar { display: flex; gap: 8px; width: 480px; }
+    .search-bar input {
+      flex: 1; background: var(--bg-dark); border: 1px solid var(--border-color);
+      border-radius: 6px; padding: 8px 12px; color: var(--text-main); font-size: 0.9rem;
+    }
+    .search-bar input:focus { outline: none; border-color: var(--accent); }
+    .btn {
+      background: var(--accent); color: white; border: none; border-radius: 6px;
+      padding: 8px 16px; font-weight: 600; cursor: pointer; transition: 0.2s;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn-secondary { background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); }
+    .btn-secondary:hover { background: #2d3243; }
+    .btn-active { background: var(--cyan) !important; color: #000 !important; font-weight: 700; }
+
+    /* Main Container */
+    .app-body { display: flex; flex: 1; height: calc(100vh - 56px); }
+
+    /* Sidebar */
+    aside {
+      width: 360px;
+      min-width: 360px;
+      max-width: 360px;
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border-color);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      box-sizing: border-box;
+    }
+    .section-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; margin-bottom: 6px; }
+    
+    .input-row { display: flex; gap: 10px; width: 100%; box-sizing: border-box; }
+    .input-col { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; box-sizing: border-box; }
+    .input-col label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      height: 18px;
+      line-height: 18px;
+      display: block;
+    }
+
+    .form-group { display: flex; flex-direction: column; gap: 4px; margin-bottom: 6px; width: 100%; box-sizing: border-box; }
+    .form-group label { font-size: 0.82rem; color: var(--text-main); display: flex; justify-content: space-between; }
+    .form-group label span.val { color: var(--accent); font-weight: 600; }
+    .form-control {
+      background: var(--bg-dark); border: 1px solid var(--border-color);
+      color: var(--text-main); padding: 7px 10px; border-radius: 6px; font-size: 0.88rem;
+      width: 100%; box-sizing: border-box; min-width: 0;
+    }
+    .form-control:focus { outline: none; border-color: var(--accent); }
+
+    .card-info {
+      background: var(--bg-card); border: 1px solid var(--border-color);
+      border-radius: 8px; padding: 10px 12px; font-size: 0.82rem; line-height: 1.4;
+      width: 100%; box-sizing: border-box;
+    }
+    .card-info .highlight { color: var(--accent); font-weight: 700; font-size: 0.95rem; }
+
+    .checkbox-group { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer; }
+    .checkbox-group input { accent-color: var(--accent); width: 16px; height: 16px; }
+
+    .tools-bar { display: flex; gap: 8px; margin-top: 4px; width: 100%; }
+
+    .export-btn {
+      margin-top: auto; padding: 12px; font-size: 0.95rem; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+
+    /* Viewport Area */
+    main { flex: 1; display: flex; flex-direction: column; background: var(--bg-dark); position: relative; overflow: hidden; }
+    
+    .view-tabs {
+      position: absolute; top: 16px; left: 16px; z-index: 1000;
+      display: flex; background: var(--bg-panel); border: 1px solid var(--border-color);
+      border-radius: 8px; padding: 4px; gap: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+    .tab-btn {
+      background: transparent; border: none; color: var(--text-muted);
+      padding: 6px 14px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+    }
+    .tab-btn.active { background: var(--accent); color: white; }
+
+    #map-view { width: 100%; height: 100%; position: absolute; inset: 0; }
+    #viewport-3d { width: 100%; height: 100%; position: absolute; inset: 0; display: none; }
+
+    /* Status Bar */
+    .status-overlay {
+      position: absolute; bottom: 16px; left: 16px; right: 16px; z-index: 1000;
+      background: rgba(26, 29, 38, 0.95); border: 1px solid var(--border-color);
+      border-radius: 8px; padding: 8px 16px; display: flex; align-items: center; justify-content: space-between;
+      backdrop-filter: blur(8px); font-size: 0.85rem;
+    }
+    .spinner {
+      border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid var(--accent);
+      border-radius: 50%; width: 16px; height: 16px; animation: spin 0.8s linear infinite; display: none;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* Custom Leaflet Handles */
+    .resize-handle {
+      width: 14px; height: 14px; background: #ffffff; border: 2px solid #ff6b2b;
+      border-radius: 50%; cursor: grab; box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    }
+    .center-handle {
+      width: 22px; height: 22px; background: #ff6b2b; border: 2px solid #ffffff;
+      border-radius: 50%; cursor: move; box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+      display: flex; align-items: center; justify-content: center; color: white; font-size: 11px;
+    }
+    .path-handle {
+      width: 16px; height: 16px; background: #ff6b2b; border: 2px solid #ffffff;
+      border-radius: 50%; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+    }
+    .rotate-handle {
+      width: 22px; height: 22px; background: #10b981; border: 2px solid #ffffff;
+      border-radius: 50%; cursor: grab; box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+      display: flex; align-items: center; justify-content: center; color: white; font-size: 13px; font-weight: bold;
+    }
+    .rotate-handle:active {
+      cursor: grabbing; background: #059669;
+    }
+    .draggable-bbox {
+      cursor: grab !important;
+    }
+    .draggable-bbox:active {
+      cursor: grabbing !important;
+    }
+    /* Mode-specific overrides: when drawing routes or dropping pins,
+       allow clicks to pass cleanly through the bounding box and blocks to the map */
+    .mode-drawing, .mode-drawing * {
+      cursor: crosshair !important;
+    }
+    .mode-pin, .mode-pin * {
+      cursor: crosshair !important;
+    }
+    .mode-drawing .draggable-bbox,
+    .mode-pin .draggable-bbox,
+    .mode-drawing .blocks-layer,
+    .mode-pin .blocks-layer,
+    .mode-drawing .resize-handle,
+    .mode-pin .resize-handle,
+    .mode-drawing .center-handle,
+    .mode-pin .center-handle,
+    .mode-drawing .rotate-handle,
+    .mode-pin .rotate-handle {
+      pointer-events: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <span>MapMaker 3D</span>
+      <span class="brand-badge">Bambu Lab A1</span>
+    </div>
+    
+    <div class="search-bar">
+      <input type="text" id="location-input" placeholder="Search location (e.g. India, Mount Fuji, Manhattan)..." value="India" />
+      <button class="btn" id="search-btn">Search</button>
+      <button class="btn btn-secondary" id="btn-fit-view" title="Center fabrication bounding box onto current map view" style="margin-left: 6px; font-size: 0.8rem; padding: 6px 12px; white-space: nowrap;">🎯 Fit Box to View</button>
+      <button class="btn btn-secondary" id="btn-force-refresh" title="Bypass local cache and download the latest OpenStreetMap vectors and map tiles for this area" style="margin-left: 4px; font-size: 0.8rem; padding: 6px 12px; white-space: nowrap;">↻ Refresh Data</button>
+    </div>
+
+    <div>
+      <span id="header-loc" style="font-size:0.85rem; color:var(--text-muted);">Ready</span>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <!-- Sidebar Controls -->
+    <aside>
+      <div>
+        <div class="section-title">Physical Canvas Sizing (Numeric Inputs)</div>
+        <div class="input-row">
+          <div class="input-col">
+            <label>Width (X) mm</label>
+            <input type="number" id="input-width" class="form-control" min="20" step="5" value="250" />
+          </div>
+          <div class="input-col">
+            <label>Depth (Y) mm</label>
+            <input type="number" id="input-depth" class="form-control" min="20" step="5" value="250" />
+          </div>
+        </div>
+
+        <div class="card-info" style="margin-top: 8px;">
+          <div>Print Allocation: <span class="highlight" id="matrix-display">1 x 1 Tile (1 Bed Plate)</span></div>
+          <div style="color:var(--text-muted); font-size:0.75rem; margin-top:2px;">Bambu A1 Effective Bed: 250 x 250 mm</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Base Geometry & Framing</div>
+        <div class="form-group">
+          <label>Base Perimeter Shape</label>
+          <select id="select-base-shape" class="form-control">
+            <option value="rectangle" selected>Square / Rectangle</option>
+            <option value="circle">Circular Base</option>
+            <option value="ellipse">Elliptical Base</option>
+            <option value="polygon">Regular Polygon (N-Gon)</option>
+            <option value="natural_border">No Base (Coastline / Borders)</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="group-base-sides" style="display: none;">
+          <label>Polygon Sides (e.g. 6 = Hexagon, 8 = Octagon)</label>
+          <input type="number" id="input-base-sides" class="form-control" min="3" max="16" value="6" />
+        </div>
+
+        <div class="form-group" id="group-base-rotation">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <label style="margin:0;">Base Rotation</label>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span id="rotation-val-display" style="font-family:monospace; font-size:0.8rem; color:var(--accent);">0°</span>
+              <button id="btn-reset-rotation" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:0.85rem;" title="Reset Rotation to 0°">↺</button>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <input type="range" id="slider-base-rotation" min="0" max="360" step="1" value="0" style="flex:1; accent-color:var(--accent);" />
+            <input type="number" id="input-base-rotation" class="form-control" min="0" max="360" step="1" value="0" style="width:68px; text-align:center;" />
+          </div>
+        </div>
+
+        <div class="input-row">
+          <div class="input-col">
+            <label>Base Slab Height (mm)</label>
+            <input type="number" id="input-base" class="form-control" min="2.0" max="25.0" step="0.5" value="4.0" />
+          </div>
+          <div class="input-col">
+            <label>Display Mode</label>
+            <select id="select-orientation" class="form-control">
+              <option value="tabletop" selected>Tabletop (Horizontal)</option>
+              <option value="wall_hanging">Wall-Hanging (Keyhole)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Elevation & Relief (Unconstrained)</div>
+        <div class="form-group">
+          <label class="checkbox-group">
+            <input type="checkbox" id="chk-topography" checked />
+            <span>Enable 3D Elevation Relief</span>
+          </label>
+        </div>
+
+        <div class="input-row">
+          <div class="input-col">
+            <label>Relief Height (mm)</label>
+            <input type="number" id="input-relief" class="form-control" min="1.0" max="200.0" step="1.0" value="25.0" />
+          </div>
+          <div class="input-col">
+            <label>Z-Scale Multiplier</label>
+            <input type="number" id="input-z-mult" class="form-control" min="0.1" step="0.5" placeholder="Auto (1.0x)" />
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Interactive Path & Landmarks</div>
+        <div class="form-group" style="margin-bottom: 8px;">
+          <label>Route Snapping</label>
+          <select id="select-route-mode" class="form-control">
+            <option value="roads" selected>🚗 Follow Roads (OSRM Highways/Streets)</option>
+            <option value="direct">📏 Straight Line (Direct / Air Line)</option>
+          </select>
+        </div>
+        <div class="tools-bar">
+          <button class="btn btn-secondary" id="btn-draw-path" style="flex:1;">
+            <span>✏️ Draw Route</span>
+          </button>
+          <button class="btn btn-secondary" id="btn-add-pin" style="flex:1;">
+            <span>📍 Add Pin</span>
+          </button>
+          <button class="btn btn-secondary" id="btn-clear-path" title="Clear Path & Pins">
+            <span>🗑️</span>
+          </button>
+        </div>
+        <div id="path-status" style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
+          Path: 0 waypoints | 0 pins
+        </div>
+      </div>
+
+      <div>
+        <div class="section-title">Additive Manufacturing & Assembly</div>
+        <div class="form-group">
+          <label class="checkbox-group">
+            <input type="checkbox" id="chk-dowels" checked />
+            <span>Subterranean Biscuit Dowels (2mm flat)</span>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-group">
+            <input type="checkbox" id="chk-blocks" />
+            <span style="font-weight:600;">Extrude Urban Blocks & Street Grid</span>
+          </label>
+        </div>
+
+        <div id="panel-block-options" style="display:none; background:var(--bg-dark); border:1px solid var(--border-color); border-radius:6px; padding:10px; margin-top:-6px; margin-bottom:12px;">
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:8px;">
+            Carves recessed street grooves and extrudes enclosed city/village parcels with variable relief.
+          </div>
+          <div class="input-row" style="margin-bottom:8px;">
+            <div class="input-col">
+              <label style="font-size:0.75rem;">Min Height (mm)</label>
+              <input type="number" id="input-block-min-h" class="form-control" min="1.0" max="15.0" step="0.5" value="2.0" />
+            </div>
+            <div class="input-col">
+              <label style="font-size:0.75rem;">Max Height (mm)</label>
+              <input type="number" id="input-block-max-h" class="form-control" min="1.5" max="25.0" step="0.5" value="6.0" />
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:0;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <label style="font-size:0.75rem; margin:0;">Street Groove Width</label>
+              <span id="groove-val-display" style="font-size:0.75rem; color:var(--accent); font-family:monospace;">1.2 mm</span>
+            </div>
+            <input type="range" id="slider-block-groove" min="0.84" max="3.0" step="0.1" value="1.2" style="width:100%; margin-top:4px; accent-color:var(--accent);" />
+          </div>
+        </div>
+
+        <div class="card-info" style="font-size:0.75rem; color:var(--text-muted);">
+          Nozzle: 0.40mm | Min wall: 0.84mm (2 walls)
+        </div>
+      </div>
+
+      <button class="btn export-btn" id="export-btn">
+        <div class="spinner" id="export-spinner"></div>
+        <span>Generate & Export 3D Print Package</span>
+      </button>
+    </aside>
+
+    <!-- Main Viewport Area -->
+    <main>
+      <div class="view-tabs">
+        <button class="tab-btn active" id="tab-2d">2D Map Extent</button>
+        <button class="tab-btn" id="tab-3d">3D Terrain Preview</button>
+      </div>
+
+      <div id="map-view"></div>
+      <div id="viewport-3d">
+        <div class="viewport-3d-controls" style="position:absolute; top:12px; right:12px; z-index:50; display:flex; gap:6px; background:rgba(22,27,34,0.85); backdrop-filter:blur(8px); padding:6px; border-radius:8px; border:1px solid var(--border-color);">
+          <button class="btn btn-secondary" id="btn-toggle-texture" title="Toggle 2D Map Texture vs Topo Relief in Feet" style="padding:4px 10px; font-size:0.75rem; background:#2563eb; color:#fff; border-color:#3b82f6;">🗺️ Map Overlay</button>
+          <button class="btn btn-secondary" id="btn-cam-2d" title="Align camera directly with 2D map view (North is UP)" style="padding:4px 10px; font-size:0.75rem;">👁️ Match 2D</button>
+          <button class="btn btn-secondary" id="btn-cam-iso" title="Isometric 3/4 perspective" style="padding:4px 10px; font-size:0.75rem;">📐 Isometric</button>
+          <button class="btn btn-secondary" id="btn-cam-top" title="Top-down plan view" style="padding:4px 10px; font-size:0.75rem;">🔝 Top-Down</button>
+          <button class="btn btn-secondary" id="btn-cam-reset" title="Re-center / frame camera" style="padding:4px 10px; font-size:0.75rem;">🔄 Frame</button>
+        </div>
+        <div id="loading-3d" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); z-index:100; background:rgba(26,29,38,0.95); border:1px solid var(--border-color); border-radius:10px; padding:20px 28px; text-align:center; box-shadow:0 8px 32px rgba(0,0,0,0.6); backdrop-filter:blur(8px);">
+          <div class="spinner" style="display:inline-block; width:30px; height:30px; border-width:3px; margin-bottom:12px;"></div>
+          <div style="font-weight:600; font-size:1rem; color:var(--text-main);">Synthesizing 3D Terrain</div>
+          <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Decoding DEM tiles & assembling solid mesh...</div>
+        </div>
+      </div>
+
+      <div class="status-overlay" id="status-bar">
+        <span id="status-text">Search a location or drag the orange bounding box handles to set geographic extent.</span>
+        <span id="bounds-text" style="color:var(--text-muted); font-family:monospace; font-size:0.75rem;"></span>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const API_BASE = (window.location.protocol === 'http:' || window.location.protocol === 'https:')
+      ? window.location.origin
+      : 'http://127.0.0.1:8765';
+
+    // Application State
+    const state = {
+      location: "India",
+      lat: 20.5937,
+      lon: 78.9629,
+      bbox: { south: 8.0, west: 68.0, north: 37.0, east: 97.0 },
+      canvasWidth: 250,
+      canvasDepth: 250,
+      baseShape: "rectangle",
+      baseSides: 6,
+      baseHeight: 4.0,
+      baseRotation: 0,
+      targetRelief: 25.0,
+      zMultiplier: null,
+      orientation: "tabletop",
+      topography: true,
+      blocks: false,
+      blockMinH: 2.0,
+      blockMaxH: 6.0,
+      blockGrooveW: 1.2,
+      blocksData: [],
+      blocksLoadedKey: null,
+      dowels: true,
+      bedMax: 250,
+      drawPathActive: false,
+      addPinActive: false,
+      routeMode: "roads",
+      pathWaypoints: [], // Anchor points [[lat, lon], ...]
+      resolvedRoute: [], // Dense road coordinates [[lat, lon], ...]
+      landmarkPins: [],   // [{ name, lat, lon }, ...]
+      terrainDisplayMode: "map",
+      gridData: null,
+      boundaryGeoJSON: null,
+      naturalNormZ: null
+    };
+
+    // 1. Initialize Leaflet Map
+    const map = L.map('map-view').setView([state.lat, state.lon], 4);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    // 2. Interactive Bounding Box & Drag Handles
+    let bboxRect = null;
+    let bboxGuide = null;
+    let rotateStem = null;
+    let handleMarkers = [];
+    let pathPolyline = null;
+    let pathMarkers = [];
+    let pinMarkers = [];
+    let blocksLayerGroup = null;
+    let cameraInitialized = false;
+    let pinsGroup3d = null;
+    let isDirty3D = true;
+
+    function createHandleIcon(className, html = '') {
+      return L.divIcon({
+        className: className,
+        iconSize: [16, 16],
+        iconAnchor: [8, 8],
+        html: html
+      });
+    }
+
+    function syncRotationUI(deg = state.baseRotation) {
+      state.baseRotation = ((Math.round(deg) % 360) + 360) % 360;
+      const slider = document.getElementById('slider-base-rotation');
+      const input = document.getElementById('input-base-rotation');
+      const display = document.getElementById('rotation-val-display');
+      if (slider) slider.value = state.baseRotation;
+      if (input) input.value = state.baseRotation;
+      if (display) display.textContent = `${state.baseRotation}°`;
+    }
+
+    function computeBaseShapePolygon(b, shape, sides, rotationDeg = 0) {
+      const midLat = (b.south + b.north) / 2.0;
+      const midLon = (b.west + b.east) / 2.0;
+      const rLat = Math.abs(b.north - b.south) / 2.0;
+      const rLon = Math.abs(b.east - b.west) / 2.0;
+      const pts = [];
+
+      const latRad = (midLat * Math.PI) / 180.0;
+      const cosLat = Math.max(0.1, Math.cos(latRad));
+
+      const rotRad = (rotationDeg * Math.PI) / 180.0;
+      const cosR = Math.cos(rotRad);
+      const sinR = Math.sin(rotRad);
+
+      function rotatePt(dLat, dLon) {
+        const dx = dLon * cosLat;
+        const dy = dLat;
+        const dxRot = dx * cosR + dy * sinR;
+        const dyRot = -dx * sinR + dy * cosR;
+        return [midLat + dyRot, midLon + dxRot / cosLat];
+      }
+
+      if (shape === 'circle') {
+        const rMin = Math.min(rLat, rLon * cosLat);
+        for (let i = 0; i < 64; i++) {
+          const a = (2.0 * Math.PI * i) / 64;
+          pts.push(rotatePt(rMin * Math.cos(a), (rMin / cosLat) * Math.sin(a)));
+        }
+      } else if (shape === 'ellipse') {
+        for (let i = 0; i < 64; i++) {
+          const a = (2.0 * Math.PI * i) / 64;
+          pts.push(rotatePt(rLat * Math.cos(a), rLon * Math.sin(a)));
+        }
+      } else if (shape === 'polygon') {
+        const N = Math.max(3, sides || 6);
+        const rMin = Math.min(rLat, rLon * cosLat);
+        for (let i = 0; i < N; i++) {
+          const a = (2.0 * Math.PI * i) / N - Math.PI / 2.0;
+          pts.push(rotatePt(rMin * Math.cos(a), (rMin / cosLat) * Math.sin(a)));
+        }
+      } else {
+        // Rectangle / Natural Border
+        pts.push(rotatePt(-rLat, -rLon));
+        pts.push(rotatePt(rLat, -rLon));
+        pts.push(rotatePt(rLat, rLon));
+        pts.push(rotatePt(-rLat, rLon));
+      }
+      return pts;
+    }
+
+    function renderBoundingBox() {
+      // Clear existing
+      if (bboxRect) map.removeLayer(bboxRect);
+      if (bboxGuide) map.removeLayer(bboxGuide);
+      if (rotateStem) map.removeLayer(rotateStem);
+      handleMarkers.forEach(h => map.removeLayer(h));
+      handleMarkers = [];
+
+      const b = state.bbox;
+
+      // Main shape outline with direct click-and-drag across map
+      if (state.baseShape === 'natural_border' && state.boundaryGeoJSON) {
+        bboxRect = L.geoJSON(state.boundaryGeoJSON, {
+          style: {
+            color: '#ff6b2b',
+            weight: 2.8,
+            fillColor: '#ff6b2b',
+            fillOpacity: 0.16,
+            className: 'draggable-bbox'
+          }
+        }).addTo(map);
+      } else {
+        const polyPts = computeBaseShapePolygon(b, state.baseShape, state.baseSides, state.baseRotation);
+        bboxRect = L.polygon(polyPts, {
+          color: '#ff6b2b',
+          weight: 2.8,
+          dashArray: state.baseShape === 'natural_border' ? '4, 4' : '6, 6',
+          fillColor: '#ff6b2b',
+          fillOpacity: 0.16,
+          className: 'draggable-bbox'
+        }).addTo(map);
+      }
+
+      // Direct dragging of the entire bounding box (in normal selection mode with movement threshold)
+      let isDraggingPolygon = false;
+      let polyDragStart = null;
+      let polyOrigBbox = null;
+      let polyStartPoint = null;
+      let polyHasMoved = false;
+
+      bboxRect.on('mousedown', (e) => {
+        if (state.drawPathActive || state.addPinActive) return;
+        L.DomEvent.stopPropagation(e);
+        isDraggingPolygon = true;
+        polyDragStart = e.latlng;
+        polyOrigBbox = { ...state.bbox };
+        polyStartPoint = e.containerPoint;
+        polyHasMoved = false;
+        map.dragging.disable();
+      });
+
+      const onPolyMouseMove = (e) => {
+        if (!isDraggingPolygon || !polyDragStart) return;
+        if (!polyHasMoved) {
+          const dist = Math.hypot(e.containerPoint.x - polyStartPoint.x, e.containerPoint.y - polyStartPoint.y);
+          if (dist < 5) return;
+          polyHasMoved = true;
+        }
+        const dLat = e.latlng.lat - polyDragStart.lat;
+        const dLon = e.latlng.lng - polyDragStart.lng;
+        state.bbox = {
+          south: polyOrigBbox.south + dLat,
+          north: polyOrigBbox.north + dLat,
+          west: polyOrigBbox.west + dLon,
+          east: polyOrigBbox.east + dLon
+        };
+        isDirty3D = true;
+        bboxRect.setLatLngs(computeBaseShapePolygon(state.bbox, state.baseShape, state.baseSides, state.baseRotation));
+        if (bboxGuide) bboxGuide.setBounds([[state.bbox.south, state.bbox.west], [state.bbox.north, state.bbox.east]]);
+        updateBoundsDisplay();
+      };
+
+      const onPolyMouseUp = () => {
+        if (isDraggingPolygon) {
+          const didMove = polyHasMoved;
+          isDraggingPolygon = false;
+          polyDragStart = null;
+          polyStartPoint = null;
+          polyHasMoved = false;
+          map.dragging.enable();
+          if (didMove) {
+            isDirty3D = true;
+            renderBoundingBox();
+            if (state.blocks) loadAndDisplayBlocks();
+            if (scene3d && document.getElementById('tab-3d').classList.contains('active')) render3DScene();
+          }
+        }
+      };
+
+      bboxRect.on('click', (e) => {
+        handleMapClick(e.latlng);
+      });
+
+      map.off('mousemove', onPolyMouseMove);
+      map.off('mouseup', onPolyMouseUp);
+      map.on('mousemove', onPolyMouseMove);
+      map.on('mouseup', onPolyMouseUp);
+
+      // Faint bounding box guide if non-rectangular or rotated
+      if (state.baseShape !== 'rectangle' || state.baseRotation !== 0) {
+        bboxGuide = L.rectangle([[b.south, b.west], [b.north, b.east]], {
+          color: '#8b949e',
+          weight: 1,
+          dashArray: '3, 4',
+          fill: false,
+          interactive: false
+        }).addTo(map);
+      }
+
+      // Corner handles: NW, NE, SE, SW (placed at rotated vertices when rotated)
+      const midLat = (b.south + b.north) / 2.0;
+      const midLon = (b.west + b.east) / 2.0;
+      const latRad = (midLat * Math.PI) / 180.0;
+      const cosLat = Math.max(0.1, Math.cos(latRad));
+
+      let corners;
+      if (state.baseRotation === 0) {
+        corners = [
+          { id: 'nw', lat: b.north, lon: b.west, cursor: 'nwse-resize' },
+          { id: 'ne', lat: b.north, lon: b.east, cursor: 'nesw-resize' },
+          { id: 'se', lat: b.south, lon: b.east, cursor: 'nwse-resize' },
+          { id: 'sw', lat: b.south, lon: b.west, cursor: 'nesw-resize' }
+        ];
+      } else {
+        const rotPts = computeBaseShapePolygon(b, 'rectangle', 4, state.baseRotation);
+        // rotPts order: 0: SW, 1: NW, 2: NE, 3: SE
+        corners = [
+          { id: 'nw', lat: rotPts[1][0], lon: rotPts[1][1], cursor: 'nwse-resize' },
+          { id: 'ne', lat: rotPts[2][0], lon: rotPts[2][1], cursor: 'nesw-resize' },
+          { id: 'se', lat: rotPts[3][0], lon: rotPts[3][1], cursor: 'nwse-resize' },
+          { id: 'sw', lat: rotPts[0][0], lon: rotPts[0][1], cursor: 'nesw-resize' }
+        ];
+      }
+
+      corners.forEach(c => {
+        const marker = L.marker([c.lat, c.lon], {
+          draggable: true,
+          icon: createHandleIcon('resize-handle')
+        }).addTo(map);
+
+        if (marker.getElement()) {
+          marker.getElement().style.cursor = c.cursor;
+        }
+
+        marker.on('drag', (e) => {
+          const pos = e.target.getLatLng();
+          if (state.baseRotation === 0) {
+            if (c.id === 'nw') { b.north = pos.lat; b.west = pos.lng; }
+            else if (c.id === 'ne') { b.north = pos.lat; b.east = pos.lng; }
+            else if (c.id === 'se') { b.south = pos.lat; b.east = pos.lng; }
+            else if (c.id === 'sw') { b.south = pos.lat; b.west = pos.lng; }
+            
+            // Re-normalize min/max
+            const n = Math.max(b.north, b.south);
+            const s = Math.min(b.north, b.south);
+            const e_ = Math.max(b.east, b.west);
+            const w_ = Math.min(b.east, b.west);
+            state.bbox = { south: s, west: w_, north: n, east: e_ };
+          } else {
+            const dLat = pos.lat - midLat;
+            const dLon = (pos.lng - midLon) * cosLat;
+            const rotR = (state.baseRotation * Math.PI) / 180.0;
+            const cosR = Math.cos(rotR);
+            const sinR = Math.sin(rotR);
+            const dx = dLon * cosR - dLat * sinR;
+            const dy = dLon * sinR + dLat * cosR;
+            const newRLat = Math.max(0.005, Math.abs(dy));
+            const newRLon = Math.max(0.005, Math.abs(dx) / cosLat);
+            state.bbox = {
+              south: midLat - newRLat,
+              north: midLat + newRLat,
+              west: midLon - newRLon,
+              east: midLon + newRLon
+            };
+          }
+          
+          isDirty3D = true;
+          bboxRect.setLatLngs(computeBaseShapePolygon(state.bbox, state.baseShape, state.baseSides, state.baseRotation));
+          if (bboxGuide) bboxGuide.setBounds([[state.bbox.south, state.bbox.west], [state.bbox.north, state.bbox.east]]);
+          updateBoundsDisplay();
+        });
+
+        marker.on('dragend', () => {
+          isDirty3D = true;
+          renderBoundingBox();
+          if (state.blocks) loadAndDisplayBlocks();
+          if (scene3d && document.getElementById('tab-3d').classList.contains('active')) render3DScene();
+        });
+        handleMarkers.push(marker);
+      });
+
+      // Center move handle
+      const centerMarker = L.marker([midLat, midLon], {
+        draggable: true,
+        icon: createHandleIcon('center-handle', '✥')
+      }).addTo(map);
+
+      let prevCenter = { lat: midLat, lng: midLon };
+      centerMarker.on('dragstart', (e) => { prevCenter = e.target.getLatLng(); });
+      centerMarker.on('drag', (e) => {
+        const cur = e.target.getLatLng();
+        const dLat = cur.lat - prevCenter.lat;
+        const dLon = cur.lng - prevCenter.lng;
+        prevCenter = cur;
+
+        b.south += dLat; b.north += dLat;
+        b.west += dLon; b.east += dLon;
+        state.bbox = b;
+        isDirty3D = true;
+        bboxRect.setLatLngs(computeBaseShapePolygon(b, state.baseShape, state.baseSides, state.baseRotation));
+        if (bboxGuide) bboxGuide.setBounds([[b.south, b.west], [b.north, b.east]]);
+        updateBoundsDisplay();
+      });
+      centerMarker.on('dragend', () => {
+        isDirty3D = true;
+        renderBoundingBox();
+        if (state.blocks) loadAndDisplayBlocks();
+        if (scene3d && document.getElementById('tab-3d').classList.contains('active')) render3DScene();
+      });
+      handleMarkers.push(centerMarker);
+
+      // Interactive Rotation Handle (⟳) at top of the shape
+      const rLat = Math.abs(b.north - b.south) / 2.0;
+      const rotRad = (state.baseRotation * Math.PI) / 180.0;
+      const cosR = Math.cos(rotRad);
+      const sinR = Math.sin(rotRad);
+
+      const topDLat = rLat;
+      const handleDLat = rLat * 1.28 + 0.008;
+
+      const topPt = [
+        midLat + (topDLat * cosR),
+        midLon + (topDLat * sinR) / cosLat
+      ];
+      const handlePt = [
+        midLat + (handleDLat * cosR),
+        midLon + (handleDLat * sinR) / cosLat
+      ];
+
+      rotateStem = L.polyline([topPt, handlePt], {
+        color: '#10b981',
+        weight: 2,
+        dashArray: '3, 4',
+        interactive: false
+      }).addTo(map);
+
+      const rotateMarker = L.marker(handlePt, {
+        draggable: true,
+        icon: createHandleIcon('rotate-handle', '⟳')
+      }).addTo(map);
+
+      rotateMarker.on('drag', (e) => {
+        const cur = e.target.getLatLng();
+        const dx = (cur.lng - midLon) * cosLat;
+        const dy = cur.lat - midLat;
+        const angleDeg = Math.round((Math.atan2(dx, dy) * 180.0 / Math.PI + 360.0) % 360.0);
+        state.baseRotation = angleDeg;
+        syncRotationUI();
+
+        bboxRect.setLatLngs(computeBaseShapePolygon(state.bbox, state.baseShape, state.baseSides, state.baseRotation));
+        
+        // Update stem line
+        const newRotRad = (state.baseRotation * Math.PI) / 180.0;
+        const newCos = Math.cos(newRotRad);
+        const newSin = Math.sin(newRotRad);
+        const newTop = [midLat + (topDLat * newCos), midLon + (topDLat * newSin) / cosLat];
+        rotateStem.setLatLngs([newTop, cur]);
+      });
+
+      rotateMarker.on('dragend', () => {
+        renderBoundingBox();
+        if (document.getElementById('tab-3d').classList.contains('active')) {
+          render3DScene();
+        }
+      });
+      handleMarkers.push(rotateMarker);
+
+      syncRotationUI();
+      updateBoundsDisplay();
+    }
+
+    function updateBoundsDisplay() {
+      const b = state.bbox;
+      document.getElementById('bounds-text').textContent = 
+        `Extent: [S: ${b.south.toFixed(3)}, W: ${b.west.toFixed(3)}, N: ${b.north.toFixed(3)}, E: ${b.east.toFixed(3)}]`;
+    }
+
+    // 3. Tiling Matrix Calculator
+    function updateTiling() {
+      state.canvasWidth = parseFloat(document.getElementById('input-width').value) || 250;
+      state.canvasDepth = parseFloat(document.getElementById('input-depth').value) || 250;
+
+      const cols = Math.max(1, Math.ceil(state.canvasWidth / state.bedMax));
+      const rows = Math.max(1, Math.ceil(state.canvasDepth / state.bedMax));
+      const total = cols * rows;
+
+      document.getElementById('matrix-display').textContent = 
+        `${cols} x ${rows} Grid (${total} Bed Plate${total > 1 ? 's' : ''})`;
+    }
+
+    document.getElementById('input-width').addEventListener('input', updateTiling);
+    document.getElementById('input-depth').addEventListener('input', updateTiling);
+
+    // Base shape toggle
+    document.getElementById('select-base-shape').addEventListener('change', async (e) => {
+      state.baseShape = e.target.value;
+      const groupSides = document.getElementById('group-base-sides');
+      groupSides.style.display = (state.baseShape === 'polygon') ? 'flex' : 'none';
+
+      if (state.baseShape === 'natural_border' && !state.boundaryGeoJSON && state.location) {
+        document.getElementById('status-text').textContent = `Fetching official territorial boundary for '${state.location}'...`;
+        try {
+          const res = await fetch(`${API_BASE}/api/boundary?q=${encodeURIComponent(state.location)}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.geojson) {
+              state.boundaryGeoJSON = data.geojson;
+              document.getElementById('status-text').textContent = `Loaded official boundary for ${data.display_name}.`;
+            }
+          }
+        } catch (err) {
+          console.warn("Could not fetch boundary:", err);
+        }
+      }
+
+      isDirty3D = true;
+      renderBoundingBox();
+      if (scene3d && document.getElementById('tab-3d').classList.contains('active')) {
+        render3DScene();
+      }
+    });
+
+    document.getElementById('input-base-sides').addEventListener('input', (e) => {
+      state.baseSides = parseInt(e.target.value) || 6;
+      renderBoundingBox();
+      if (scene3d && document.getElementById('tab-3d').classList.contains('active')) {
+        render3DScene();
+      }
+    });
+
+    document.getElementById('slider-base-rotation').addEventListener('input', (e) => {
+      syncRotationUI(parseFloat(e.target.value) || 0);
+      renderBoundingBox();
+      if (scene3d && document.getElementById('tab-3d').classList.contains('active')) {
+        render3DScene();
+      }
+    });
+
+    document.getElementById('input-base-rotation').addEventListener('input', (e) => {
+      syncRotationUI(parseFloat(e.target.value) || 0);
+      renderBoundingBox();
+      if (scene3d && document.getElementById('tab-3d').classList.contains('active')) {
+        render3DScene();
+      }
+    });
+
+    document.getElementById('btn-reset-rotation').addEventListener('click', () => {
+      syncRotationUI(0);
+      renderBoundingBox();
+      if (scene3d && document.getElementById('tab-3d').classList.contains('active')) {
+        render3DScene();
+      }
+    });
+
+    document.getElementById('input-base').addEventListener('input', (e) => {
+      state.baseHeight = parseFloat(e.target.value) || 4.0;
+      if (scene3d && document.getElementById('tab-3d').classList.contains('active')) render3DScene();
+    });
+
+    document.getElementById('input-relief').addEventListener('input', (e) => {
+      state.targetRelief = parseFloat(e.target.value) || 25.0;
+      if (scene3d && document.getElementById('tab-3d').classList.contains('active')) render3DScene();
+    });
+
+    document.getElementById('input-z-mult').addEventListener('input', (e) => {
+      state.zMultiplier = parseFloat(e.target.value) || null;
+      if (scene3d && document.getElementById('tab-3d').classList.contains('active')) render3DScene();
+    });
+
+    document.getElementById('select-route-mode').addEventListener('change', (e) => {
+      state.routeMode = e.target.value;
+      updatePathLayers();
+    });
+
+    // 4. Geocoding Search with Context Zoom-Out
+    async function doSearch(forceRefresh = false) {
+      const q = document.getElementById('location-input').value.trim();
+      if (!q) return;
+      document.getElementById('status-text').textContent = forceRefresh
+        ? `↻ Bypassing cache and re-fetching '${q}'...`
+        : `Geocoding '${q}'...`;
+
+      try {
+        const refreshParam = forceRefresh ? '&force_refresh=true' : '';
+        const res = await fetch(`${API_BASE}/api/geocode?q=${encodeURIComponent(q)}${refreshParam}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        state.lat = data.lat;
+        state.lon = data.lon;
+        state.bbox = data.bbox;
+        state.location = data.display_name;
+        state.boundaryGeoJSON = data.geojson || null;
+
+        document.getElementById('header-loc').textContent = data.display_name.split(',')[0];
+        document.getElementById('status-text').textContent = `Resolved: ${data.display_name}. Click & drag box/handles to adjust boundaries.`;
+
+        // ZOOMED-OUT CONTEXT: fit bounds with 35% padding so the user sees surrounding geography!
+        const b = state.bbox;
+        const leafBounds = L.latLngBounds([b.south, b.west], [b.north, b.east]);
+        map.fitBounds(leafBounds.pad(0.35), { maxZoom: 13 });
+
+        cameraInitialized = false;
+        isDirty3D = true;
+        renderBoundingBox();
+        if (state.blocks) {
+          loadAndDisplayBlocks(forceRefresh);
+        }
+        if (document.getElementById('tab-3d').classList.contains('active')) {
+          render3DScene(forceRefresh);
+        }
+      } catch (err) {
+        console.error(err);
+        document.getElementById('status-text').innerHTML = 
+          `❌ <b>Search failed:</b> Could not reach MapMaker backend at <code>${API_BASE}</code>. Make sure <code>python3 tools/mapmaker/app.py</code> is running in your SSH terminal!`;
+      }
+    }
+
+    async function forceRefreshData() {
+      const btn = document.getElementById('btn-force-refresh');
+      if (btn) btn.disabled = true;
+      document.getElementById('status-text').textContent = "↻ Bypassing local cache & downloading latest OpenStreetMap vectors and map tiles...";
+      try {
+        state.blocksLoadedKey = null;
+        state.forceRefreshTexture = true;
+
+        if (state.baseShape === 'natural_border') {
+          const q = document.getElementById('location-input').value.trim();
+          if (q) {
+            const res = await fetch(`${API_BASE}/api/boundary?q=${encodeURIComponent(q)}&force_refresh=true`);
+            if (res.ok) {
+              const bData = await res.json();
+              if (bData.geojson) {
+                state.boundaryGeoJSON = bData.geojson;
+                renderBoundingBox();
+              }
+            }
+          }
+        }
+
+        if (state.blocks) {
+          await loadAndDisplayBlocks(true);
+        }
+
+        if (document.getElementById('tab-3d').classList.contains('active')) {
+          await render3DScene(true);
+        } else {
+          // Warm fresh map texture cache in background even on 2D tab
+          const b = state.bbox;
+          await fetch(`${API_BASE}/api/map_texture?south=${b.south}&west=${b.west}&north=${b.north}&east=${b.east}&size=1024&force_refresh=true`);
+          isDirty3D = true;
+        }
+
+        document.getElementById('status-text').textContent = "✅ Cache refreshed: loaded latest live OpenStreetMap vectors and map tiles!";
+      } catch (err) {
+        console.warn("Force refresh error:", err);
+        document.getElementById('status-text').textContent = `Refresh completed with warning: ${err.message}`;
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    function fitBoxToView() {
+      const bounds = map.getBounds();
+      const center = bounds.getCenter();
+      const latSpan = state.bbox.north - state.bbox.south;
+      const lonSpan = state.bbox.east - state.bbox.west;
+      state.bbox = {
+        south: center.lat - latSpan / 2.0,
+        north: center.lat + latSpan / 2.0,
+        west: center.lng - lonSpan / 2.0,
+        east: center.lng + lonSpan / 2.0
+      };
+      isDirty3D = true;
+      renderBoundingBox();
+      if (state.blocks) loadAndDisplayBlocks();
+      if (scene3d && document.getElementById('tab-3d').classList.contains('active')) render3DScene();
+      document.getElementById('status-text').textContent = "🎯 Bounding box centered on current map view.";
+    }
+
+    document.getElementById('search-btn').addEventListener('click', () => doSearch(false));
+    document.getElementById('btn-fit-view')?.addEventListener('click', fitBoxToView);
+    document.getElementById('btn-force-refresh')?.addEventListener('click', forceRefreshData);
+    document.getElementById('location-input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') doSearch(false);
+    });
+
+    // 5. Interactive Path Drawing Tool
+    const btnDrawPath = document.getElementById('btn-draw-path');
+    const btnAddPin = document.getElementById('btn-add-pin');
+    const btnClearPath = document.getElementById('btn-clear-path');
+
+    function updateToolModeUI() {
+      const mapContainer = document.getElementById('map-view');
+      if (!mapContainer) return;
+      if (state.drawPathActive) {
+        mapContainer.classList.add('mode-drawing');
+        mapContainer.classList.remove('mode-pin');
+      } else if (state.addPinActive) {
+        mapContainer.classList.add('mode-pin');
+        mapContainer.classList.remove('mode-drawing');
+      } else {
+        mapContainer.classList.remove('mode-drawing', 'mode-pin');
+      }
+    }
+
+    function handleMapClick(latlng) {
+      if (!latlng) return;
+      if (state.drawPathActive) {
+        state.pathWaypoints.push([latlng.lat, latlng.lng]);
+        updatePathLayers();
+      } else if (state.addPinActive) {
+        const name = prompt("Enter Landmark / Highlight Name:", "Landmark Point");
+        if (name) {
+          state.landmarkPins.push({ name: name, lat: latlng.lat, lon: latlng.lng });
+          updatePinLayers();
+        }
+      }
+    }
+
+    btnDrawPath.addEventListener('click', () => {
+      state.drawPathActive = !state.drawPathActive;
+      state.addPinActive = false;
+      btnAddPin.classList.remove('btn-active');
+      updateToolModeUI();
+
+      if (state.drawPathActive) {
+        btnDrawPath.classList.add('btn-active');
+        document.getElementById('status-text').textContent = "✏️ Drawing Mode Active: Click anywhere on the map to add waypoints along your travel route.";
+      } else {
+        btnDrawPath.classList.remove('btn-active');
+        document.getElementById('status-text').textContent = "Drawing Mode off.";
+      }
+    });
+
+    btnAddPin.addEventListener('click', () => {
+      state.addPinActive = !state.addPinActive;
+      state.drawPathActive = false;
+      btnDrawPath.classList.remove('btn-active');
+      updateToolModeUI();
+
+      if (state.addPinActive) {
+        btnAddPin.classList.add('btn-active');
+        document.getElementById('status-text').textContent = "📍 Pin Mode Active: Click anywhere on the map to drop a landmark pin.";
+      } else {
+        btnAddPin.classList.remove('btn-active');
+        document.getElementById('status-text').textContent = "Pin Mode off.";
+      }
+    });
+
+    btnClearPath.addEventListener('click', () => {
+      state.pathWaypoints = [];
+      state.resolvedRoute = [];
+      state.landmarkPins = [];
+      state.drawPathActive = false;
+      state.addPinActive = false;
+      btnDrawPath.classList.remove('btn-active');
+      btnAddPin.classList.remove('btn-active');
+      updateToolModeUI();
+      if (pathPolyline) map.removeLayer(pathPolyline);
+      pathMarkers.forEach(m => map.removeLayer(m));
+      pinMarkers.forEach(m => map.removeLayer(m));
+      pathMarkers = [];
+      pinMarkers = [];
+      updatePathStatus();
+      if (pinsGroup3d && scene3d) {
+        scene3d.remove(pinsGroup3d);
+        pinsGroup3d = null;
+      }
+      if (pathMesh3d && scene3d) {
+        scene3d.remove(pathMesh3d);
+        pathMesh3d = null;
+      }
+      if (scene3d && document.getElementById('tab-3d').classList.contains('active')) render3DScene();
+    });
+
+    map.on('click', (e) => {
+      handleMapClick(e.latlng);
+    });
+
+    async function updatePathLayers() {
+      if (pathPolyline) map.removeLayer(pathPolyline);
+      pathMarkers.forEach(m => map.removeLayer(m));
+      pathMarkers = [];
+
+      if (state.pathWaypoints.length === 0) {
+        state.resolvedRoute = [];
+        updatePathStatus();
+        return;
+      }
+
+      // Draw anchor drag markers
+      state.pathWaypoints.forEach((pt, idx) => {
+        const marker = L.marker(pt, {
+          draggable: true,
+          icon: createHandleIcon('path-handle')
+        }).addTo(map);
+
+        marker.on('drag', (e) => {
+          state.pathWaypoints[idx] = [e.target.getLatLng().lat, e.target.getLatLng().lng];
+        });
+        marker.on('dragend', () => {
+          updatePathLayers();
+        });
+        pathMarkers.push(marker);
+      });
+
+      if (state.pathWaypoints.length === 1) {
+        state.resolvedRoute = [state.pathWaypoints[0]];
+        updatePathStatus();
+        return;
+      }
+
+      // Route computation
+      if (state.routeMode === 'roads') {
+        document.getElementById('status-text').textContent = "Routing along road network (OSRM)...";
+        try {
+          const ptsStr = state.pathWaypoints.map(p => `${p[0]},${p[1]}`).join(';');
+          const res = await fetch(`${API_BASE}/api/route?waypoints=${ptsStr}`);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          if (data.coordinates && data.coordinates.length > 0) {
+            state.resolvedRoute = data.coordinates;
+            const distKm = (data.distance_m / 1000).toFixed(1);
+            document.getElementById('status-text').textContent = 
+              `🚗 Route calculated: ${distKm} km along road network (${state.resolvedRoute.length} road pts).`;
+          } else {
+            state.resolvedRoute = state.pathWaypoints;
+          }
+        } catch (err) {
+          console.warn("Road routing failed, falling back to direct line:", err);
+          state.resolvedRoute = state.pathWaypoints;
+          document.getElementById('status-text').textContent = "Road route unavailable for this segment; using direct line.";
+        }
+      } else {
+        state.resolvedRoute = state.pathWaypoints;
+        document.getElementById('status-text').textContent = "Straight line route active.";
+      }
+
+      pathPolyline = L.polyline(state.resolvedRoute, { color: '#ff6b2b', weight: 4 }).addTo(map);
+      updatePathStatus();
+      if (scene3d && document.getElementById('tab-3d').classList.contains('active')) {
+        render3DScene();
+      }
+    }
+
+    function updatePinLayers() {
+      pinMarkers.forEach(m => map.removeLayer(m));
+      pinMarkers = [];
+
+      state.landmarkPins.forEach(p => {
+        const marker = L.marker([p.lat, p.lon]).bindPopup(`<b>${p.name}</b>`).addTo(map);
+        marker.openPopup();
+        pinMarkers.push(marker);
+      });
+      updatePathStatus();
+      if (scene3d) {
+        render3DPins();
+      }
+    }
+
+    function updatePathStatus() {
+      const modeTxt = state.routeMode === 'roads' ? 'Road' : 'Direct';
+      document.getElementById('path-status').textContent = 
+        `Route (${modeTxt}): ${state.pathWaypoints.length} waypoints (${state.resolvedRoute.length} pts) | Pins: ${state.landmarkPins.length}`;
+    }
+
+    // 5b. Urban Block & Street Grid Relief Manager
+    let blocksGroup3d = null;
+
+    async function loadAndDisplayBlocks(forceRefresh = false) {
+      const b = state.bbox;
+      const bboxKey = `${b.south.toFixed(4)},${b.west.toFixed(4)},${b.north.toFixed(4)},${b.east.toFixed(4)}_${state.blockMinH}_${state.blockMaxH}_${state.blockGrooveW}`;
+
+      if (!forceRefresh && state.blocksLoadedKey === bboxKey && state.blocksData && state.blocksData.length > 0) {
+        render2DBlocks();
+        if (document.getElementById('tab-3d').classList.contains('active')) {
+          render3DScene();
+        }
+        return;
+      }
+
+      document.getElementById('status-text').textContent = forceRefresh
+        ? "↻ Fetching fresh urban blocks & street network from live OpenStreetMap..."
+        : "Partitioning urban blocks & carving recessed street network (OSM)...";
+      try {
+        const queryParams = new URLSearchParams({
+          south: b.south,
+          west: b.west,
+          north: b.north,
+          east: b.east,
+          width_mm: state.canvasWidth,
+          depth_mm: state.canvasDepth,
+          groove_w: state.blockGrooveW,
+          min_h: state.blockMinH,
+          max_h: state.blockMaxH,
+          force_refresh: forceRefresh ? 'true' : 'false'
+        });
+        const url = `${API_BASE}/api/blocks?${queryParams.toString()}`;
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        const data = await res.json();
+
+        state.blocksData = data.blocks || [];
+        state.blocksLoadedKey = bboxKey;
+
+        render2DBlocks();
+        document.getElementById('status-text').textContent = 
+          `🏛️ Extruded ${state.blocksData.length} urban/village blocks with recessed street grid (${state.blockMinH}–${state.blockMaxH}mm). View 3D preview!`;
+
+        if (document.getElementById('tab-3d').classList.contains('active')) {
+          render3DScene();
+        }
+      } catch (err) {
+        console.warn("Failed to load urban blocks:", err);
+        document.getElementById('status-text').textContent = `Could not fetch urban blocks: ${err.message}`;
+      }
+    }
+
+    function clearBlockLayers() {
+      if (blocksLayerGroup) {
+        map.removeLayer(blocksLayerGroup);
+        blocksLayerGroup = null;
+      }
+      if (blocksGroup3d && scene3d) {
+        scene3d.remove(blocksGroup3d);
+        blocksGroup3d = null;
+      }
+    }
+
+    function render2DBlocks() {
+      if (blocksLayerGroup) {
+        map.removeLayer(blocksLayerGroup);
+      }
+      blocksLayerGroup = L.layerGroup();
+
+      if (!state.blocks || !state.blocksData || state.blocksData.length === 0) return;
+
+      state.blocksData.forEach(blk => {
+        if (!blk.coordinates || blk.coordinates.length < 3) return;
+        const poly = L.polygon(blk.coordinates, {
+          color: '#f59e0b',
+          weight: 1.5,
+          opacity: 0.9,
+          fillColor: '#f59e0b',
+          fillOpacity: 0.35,
+          className: 'blocks-layer'
+        });
+        poly.bindTooltip(
+          `<b>Urban Block</b><br>3D Relief: ${blk.height_mm.toFixed(1)} mm<br>Footprint: ${blk.area_sq_m.toFixed(0)} m²`,
+          { sticky: true }
+        );
+        poly.on('click', (e) => {
+          handleMapClick(e.latlng);
+        });
+        blocksLayerGroup.addLayer(poly);
+      });
+
+      blocksLayerGroup.addTo(map);
+    }
+
+    // Block UI event listeners
+    const chkBlocks = document.getElementById('chk-blocks');
+    const panelBlockOpts = document.getElementById('panel-block-options');
+    const inputBlockMinH = document.getElementById('input-block-min-h');
+    const inputBlockMaxH = document.getElementById('input-block-max-h');
+    const sliderBlockGroove = document.getElementById('slider-block-groove');
+    const grooveValDisplay = document.getElementById('groove-val-display');
+
+    if (chkBlocks) {
+      chkBlocks.addEventListener('change', (e) => {
+        state.blocks = e.target.checked;
+        if (panelBlockOpts) panelBlockOpts.style.display = state.blocks ? 'block' : 'none';
+        if (state.blocks) {
+          loadAndDisplayBlocks();
+        } else {
+          clearBlockLayers();
+          if (scene3d && document.getElementById('tab-3d').classList.contains('active')) {
+            render3DScene();
+          }
+        }
+      });
+    }
+
+    if (inputBlockMinH) {
+      inputBlockMinH.addEventListener('change', (e) => {
+        state.blockMinH = Math.max(1.0, parseFloat(e.target.value) || 2.0);
+        if (state.blocks) loadAndDisplayBlocks();
+      });
+    }
+
+    if (inputBlockMaxH) {
+      inputBlockMaxH.addEventListener('change', (e) => {
+        state.blockMaxH = Math.max(state.blockMinH, parseFloat(e.target.value) || 6.0);
+        if (state.blocks) loadAndDisplayBlocks();
+      });
+    }
+
+    if (sliderBlockGroove) {
+      sliderBlockGroove.addEventListener('input', (e) => {
+        state.blockGrooveW = parseFloat(e.target.value) || 1.2;
+        if (grooveValDisplay) grooveValDisplay.textContent = `${state.blockGrooveW.toFixed(1)} mm`;
+      });
+      sliderBlockGroove.addEventListener('change', () => {
+        if (state.blocks) loadAndDisplayBlocks();
+      });
+    }
+
+    // 6. 3D WebGL Three.js Viewport
+    let scene3d, camera3d, renderer3d, controls3d, terrainMesh3d, pathMesh3d;
+
+    function checkWebGLSupport() {
+      try {
+        const canvas = document.createElement('canvas');
+        return !!(window.WebGLRenderingContext && 
+          (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function init3D() {
+      const container = document.getElementById('viewport-3d');
+      if (!checkWebGLSupport()) {
+        throw new Error("WebGL is not supported or software acceleration is disabled in this session. If using Chrome Remote Desktop, start Chrome with '--ignore-gpu-blocklist --enable-unsafe-swiftshader' or open http://127.0.0.1:8765 in your desktop browser.");
+      }
+
+      scene3d = new THREE.Scene();
+      scene3d.background = new THREE.Color(0x12141a);
+
+      const w = container.clientWidth || 800;
+      const h = container.clientHeight || 600;
+
+      camera3d = new THREE.PerspectiveCamera(45, w / h, 1, 5000);
+      camera3d.up.set(0, 0, 1); // Z is vertical up in CAD / 3D printing
+      camera3d.position.set(0, -350, 280);
+
+      renderer3d = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
+      renderer3d.setSize(w, h);
+      renderer3d.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer3d.outputEncoding = THREE.sRGBEncoding;
+      renderer3d.shadowMap.enabled = true;
+      container.appendChild(renderer3d.domElement);
+
+      controls3d = new THREE.OrbitControls(camera3d, renderer3d.domElement);
+      controls3d.enableDamping = true;
+      controls3d.dampingFactor = 0.05;
+      controls3d.target.set(0, 0, 15);
+
+      // Studio Lighting calibrated for vibrant CAD relief & map contrast
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
+      scene3d.add(ambientLight);
+
+      const sunLight = new THREE.DirectionalLight(0xfff5e6, 0.75);
+      sunLight.position.set(150, -200, 300);
+      scene3d.add(sunLight);
+
+      const fillLight = new THREE.DirectionalLight(0x90b0e0, 0.35);
+      fillLight.position.set(-200, 200, 150);
+      scene3d.add(fillLight);
+
+      // Grid helper on build plate (XY plane)
+      const gridHelper = new THREE.GridHelper(350, 35, 0x555566, 0x2a2d38);
+      gridHelper.rotation.x = Math.PI / 2; // Lie on XY plane (Z=0)
+      gridHelper.position.z = 0;
+      scene3d.add(gridHelper);
+
+      function animate() {
+        requestAnimationFrame(animate);
+        if (controls3d) controls3d.update();
+        if (renderer3d && scene3d && camera3d) renderer3d.render(scene3d, camera3d);
+      }
+      animate();
+
+      window.addEventListener('resize', () => {
+        if (container.clientWidth > 0 && container.clientHeight > 0 && camera3d && renderer3d) {
+          camera3d.aspect = container.clientWidth / container.clientHeight;
+          camera3d.updateProjectionMatrix();
+          renderer3d.setSize(container.clientWidth, container.clientHeight);
+        }
+      });
+    }
+
+    function setCameraPreset(mode) {
+      if (!camera3d || !controls3d || !terrainMesh3d) return;
+      terrainMesh3d.geometry.computeBoundingBox();
+      const bbox3d = terrainMesh3d.geometry.boundingBox;
+      const center = new THREE.Vector3();
+      bbox3d.getCenter(center);
+      const size = new THREE.Vector3();
+      bbox3d.getSize(size);
+      const maxDim = Math.max(size.x, size.y, size.z, 60);
+
+      controls3d.target.copy(center);
+      if (mode === '2d') {
+        // Aligned with 2D map view: looking from South (-Y) towards North (+Y) at 45 degree angle
+        camera3d.position.set(center.x, center.y - maxDim * 1.35, center.z + maxDim * 0.95);
+      } else if (mode === 'iso') {
+        // Isometric 3/4 view
+        camera3d.position.set(center.x + maxDim * 0.85, center.y - maxDim * 1.15, center.z + maxDim * 0.95);
+      } else if (mode === 'top') {
+        // Pure top-down plan view
+        camera3d.position.set(center.x, center.y - 0.001, center.z + maxDim * 1.6);
+      } else if (mode === 'reset') {
+        camera3d.position.set(center.x, center.y - maxDim * 1.35, center.z + maxDim * 0.95);
+      }
+      camera3d.lookAt(center);
+      controls3d.update();
+    }
+
+    function sampleElevation(x, y, width, depth) {
+      if (!state.gridData || !state.gridData.grid) {
+        return { norm: 0, elevMeters: 0, elevFeet: 0, u: 0.5, v: 0.5 };
+      }
+      const { grid, cols, rows, minE, delta, clampOcean } = state.gridData;
+
+      const rad = ((state.baseRotation || 0) * Math.PI) / 180.0;
+      const x_rot = x * Math.cos(rad) - y * Math.sin(rad);
+      const y_rot = x * Math.sin(rad) + y * Math.cos(rad);
+
+      const u = Math.max(0.0, Math.min(1.0, (x_rot / width) + 0.5));
+      const v = Math.max(0.0, Math.min(1.0, (y_rot / depth) + 0.5));
+
+      const c_float = u * (cols - 1);
+      const r_float = v * (rows - 1);
+
+      const c0 = Math.max(0, Math.min(cols - 1, Math.floor(c_float)));
+      const c1 = Math.min(cols - 1, c0 + 1);
+      const r0 = Math.max(0, Math.min(rows - 1, Math.floor(r_float)));
+      const r1 = Math.min(rows - 1, r0 + 1);
+
+      const dc = c_float - c0;
+      const dr = r_float - r0;
+
+      const bot = (1.0 - dc) * grid[r0][c0] + dc * grid[r0][c1];
+      const top = (1.0 - dc) * grid[r1][c0] + dc * grid[r1][c1];
+      const raw = (1.0 - dr) * bot + dr * top;
+
+      const elevVal = clampOcean ? Math.max(0.0, raw) : raw;
+      const norm = Math.max(0.0, Math.min(1.0, (elevVal - minE) / delta));
+
+      return {
+        norm: norm,
+        elevMeters: raw,
+        elevFeet: raw * 3.28084,
+        u: u,
+        v: v
+      };
+    }
+
+    function sampleElevationNorm(x, y, width, depth) {
+      return sampleElevation(x, y, width, depth).norm;
+    }
+
+    function getHypsometricColor(elevFeet, rawMeters) {
+      // Ocean / Sea water: ONLY blue if physically at or below sea level (<= 0 ft)
+      if (elevFeet <= 0 || (rawMeters !== undefined && rawMeters <= 0.5)) {
+        if (elevFeet < -60) return [0.10, 0.20, 0.55]; // Deep navy ocean
+        return [0.14, 0.40, 0.85]; // Coastal azure blue
+      }
+
+      // Land elevation bands in actual physical FEET:
+      const stops = [
+        { ft: 0,     c: new THREE.Color(0x16a34a) }, // 0 ft: Lush lowland green
+        { ft: 800,   c: new THREE.Color(0x22c55e) }, // 800 ft: Vibrant valley green
+        { ft: 2000,  c: new THREE.Color(0x84cc16) }, // 2,000 ft: Rolling meadow green
+        { ft: 3800,  c: new THREE.Color(0xd97706) }, // 3,800 ft: Golden upland ochre / plateau
+        { ft: 6500,  c: new THREE.Color(0xea580c) }, // 6,500 ft: Terracotta canyon sandstone
+        { ft: 9500,  c: new THREE.Color(0x78716c) }, // 9,500 ft: Mountain ridge rock slate
+        { ft: 12500, c: new THREE.Color(0x475569) }, // 12,500 ft: High alpine dark granite slate
+        { ft: 14500, c: new THREE.Color(0xcbd5e1) }, // 14,500 ft: Light sub-peak frosted rock
+        { ft: 18000, c: new THREE.Color(0xffffff) }  // 18,000+ ft: Pure summit snow white
+      ];
+
+      const ft = Math.max(0, elevFeet);
+      for (let i = 0; i < stops.length - 1; i++) {
+        if (ft >= stops[i].ft && ft <= stops[i + 1].ft) {
+          const factor = (ft - stops[i].ft) / (stops[i + 1].ft - stops[i].ft);
+          const col = stops[i].c.clone().lerp(stops[i + 1].c, factor);
+          return [col.r, col.g, col.b];
+        }
+      }
+      return [1.0, 1.0, 1.0];
+    }
+
+    function toggleTerrainDisplayMode() {
+      state.terrainDisplayMode = (state.terrainDisplayMode === 'map' ? 'topo' : 'map');
+      updateDisplayModeUI();
+    }
+
+    function updateDisplayModeUI() {
+      const btn = document.getElementById('btn-toggle-texture');
+      if (!terrainMesh3d || !Array.isArray(terrainMesh3d.material)) return;
+
+      const { mapMaterial, topoMaterial, mapTexture } = window.terrainMaterials || {};
+      if (state.terrainDisplayMode === 'map' && mapTexture) {
+        terrainMesh3d.material[0] = mapMaterial;
+        if (btn) {
+          btn.textContent = "🗺️ Map Overlay";
+          btn.style.background = "#2563eb";
+          btn.style.borderColor = "#3b82f6";
+        }
+      } else {
+        terrainMesh3d.material[0] = topoMaterial;
+        if (btn) {
+          btn.textContent = "⛰️ Topo Relief (Ft)";
+          btn.style.background = "#059669";
+          btn.style.borderColor = "#10b981";
+        }
+      }
+    }
+
+    function render3DPins() {
+      if (!scene3d || !terrainMesh3d) return;
+      if (pinsGroup3d) {
+        scene3d.remove(pinsGroup3d);
+        pinsGroup3d = null;
+      }
+      if (!state.landmarkPins || state.landmarkPins.length === 0) return;
+
+      pinsGroup3d = new THREE.Group();
+      const b = state.bbox;
+      const latSpan = Math.max(0.0001, b.north - b.south);
+      const lonSpan = Math.max(0.0001, b.east - b.west);
+      const rotRad = ((state.baseRotation || 0) * Math.PI) / 180.0;
+      const cosR = Math.cos(rotRad);
+      const sinR = Math.sin(rotRad);
+
+      const reliefMm = window.lastTargetReliefMm || state.targetRelief || 25.0;
+
+      state.landmarkPins.forEach(p => {
+        const rawX = ((p.lon - b.west) / lonSpan - 0.5) * state.canvasWidth;
+        const rawY = ((p.lat - b.south) / latSpan - 0.5) * state.canvasDepth;
+        const x = rawX * cosR + rawY * sinR;
+        const y = -rawX * sinR + rawY * cosR;
+
+        // Skip pins that fall completely outside physical bounds
+        if (Math.abs(x) > state.canvasWidth * 0.7 || Math.abs(y) > state.canvasDepth * 0.7) {
+          return;
+        }
+
+        const s = sampleElevation(x, y, state.canvasWidth, state.canvasDepth);
+        const zGround = state.baseHeight + s.norm * reliefMm;
+
+        const pinGroup = new THREE.Group();
+
+        // 1. Tapered metal shaft (stands vertically along Z)
+        const shaftH = 8.5; // 8.5 mm tall
+        const shaftGeom = new THREE.CylinderGeometry(0.35, 0.15, shaftH, 12);
+        shaftGeom.rotateX(Math.PI / 2);
+        shaftGeom.translate(0, 0, shaftH / 2);
+        const shaftMat = new THREE.MeshStandardMaterial({
+          color: 0xd1d5db,
+          metalness: 0.85,
+          roughness: 0.25
+        });
+        const shaft = new THREE.Mesh(shaftGeom, shaftMat);
+        pinGroup.add(shaft);
+
+        // 2. High-visibility spherical pin head
+        const headR = 2.2;
+        const headGeom = new THREE.SphereGeometry(headR, 16, 16);
+        headGeom.translate(0, 0, shaftH + headR * 0.8);
+        const headMat = new THREE.MeshStandardMaterial({
+          color: 0xef4444, // Vibrant crimson
+          emissive: 0x991b1b,
+          emissiveIntensity: 0.45,
+          roughness: 0.3,
+          metalness: 0.1
+        });
+        const head = new THREE.Mesh(headGeom, headMat);
+        pinGroup.add(head);
+
+        // 3. Floating billboard text banner
+        if (p.name) {
+          const canvas = document.createElement('canvas');
+          canvas.width = 256;
+          canvas.height = 64;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+          if (ctx.roundRect) ctx.roundRect(4, 6, 248, 52, 10);
+          else ctx.fillRect(4, 6, 248, 52);
+          ctx.fill();
+          ctx.strokeStyle = '#ef4444';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 22px system-ui, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(p.name, 128, 32);
+
+          const tex = new THREE.CanvasTexture(canvas);
+          tex.needsUpdate = true;
+          const spriteMat = new THREE.SpriteMaterial({
+            map: tex,
+            depthTest: false,
+            transparent: true
+          });
+          const sprite = new THREE.Sprite(spriteMat);
+          sprite.scale.set(18, 4.5, 1);
+          sprite.position.set(0, 0, shaftH + headR * 2 + 3.5);
+          pinGroup.add(sprite);
+        }
+
+        pinGroup.position.set(x, y, zGround);
+        pinsGroup3d.add(pinGroup);
+      });
+
+      scene3d.add(pinsGroup3d);
+    }
+
+    async function render3DScene(forceRefresh = false) {
+      const container = document.getElementById('viewport-3d');
+      const loader = document.getElementById('loading-3d');
+      const errorCard = document.getElementById('error-3d');
+      if (errorCard) errorCard.remove();
+
+      if (loader) loader.style.display = 'block';
+
+      try {
+        if (!scene3d) {
+          init3D();
+        }
+
+        // Ensure viewport dimensions are synced
+        const w = container.clientWidth || (window.innerWidth - 360);
+        const h = container.clientHeight || (window.innerHeight - 56);
+        if (w > 0 && h > 0 && camera3d && renderer3d) {
+          camera3d.aspect = w / h;
+          camera3d.updateProjectionMatrix();
+          renderer3d.setSize(w, h);
+        }
+
+        document.getElementById('status-text').textContent = "Fetching elevation and synthesizing 3D geometry...";
+
+        const url = `${API_BASE}/api/elevation?south=${state.bbox.south}&west=${state.bbox.west}&north=${state.bbox.north}&east=${state.bbox.east}`;
+        
+        // 60-second timeout with informative error message
+        const controller = new AbortController();
+        let isTimedOut = false;
+        const timeoutId = setTimeout(() => {
+          isTimedOut = true;
+          controller.abort(new Error("Elevation fetch timed out (60s network latency). Please click 'Retry 3D Preview' or zoom in to a smaller region."));
+        }, 60000);
+        let res;
+        try {
+          res = await fetch(url, { signal: controller.signal, cache: 'no-store' });
+        } catch (fetchErr) {
+          if (isTimedOut || fetchErr.name === 'AbortError') {
+            throw new Error("Elevation fetch timed out (60s network latency). Please click 'Retry 3D Preview' or zoom in to a smaller region.");
+          }
+          throw fetchErr;
+        } finally {
+          clearTimeout(timeoutId);
+        }
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        const data = await res.json();
+        const grid = data.grid;
+        if (!grid || !grid.length || !grid[0].length) {
+          throw new Error("Invalid elevation data received from server.");
+        }
+        const rows = grid.length;
+        const cols = grid[0].length;
+
+        let rawMin = Infinity, rawMax = -Infinity;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            if (grid[r][c] < rawMin) rawMin = grid[r][c];
+            if (grid[r][c] > rawMax) rawMax = grid[r][c];
+          }
+        }
+
+        // Ocean Bathymetry & Flat Sea Baseline:
+        // If dataset has deep ocean (< -50m) and land (> 0m), clamp ocean to 0m so coastal land isn't compressed
+        const clampOcean = (rawMin < -50 && rawMax > 0);
+        const minE = clampOcean ? 0.0 : rawMin;
+        const maxE = rawMax;
+        const delta = Math.max(1.0, maxE - minE);
+
+        // Effective relief height in mm
+        let targetReliefMm = state.targetRelief;
+        if (state.zMultiplier && state.zMultiplier > 0) {
+          targetReliefMm = Math.min(150.0, Math.max(5.0, (delta / 1000.0) * state.zMultiplier * 10.0));
+        }
+        window.lastTargetReliefMm = targetReliefMm;
+
+        // Store full grid data on state for sampleElevation and 3D pins
+        state.gridData = {
+          grid,
+          cols,
+          rows,
+          rawMin,
+          rawMax,
+          minE,
+          maxE,
+          delta,
+          clampOcean
+        };
+
+        if (terrainMesh3d) scene3d.remove(terrainMesh3d);
+        if (pathMesh3d) scene3d.remove(pathMesh3d);
+
+        const positions = [];
+        const colors = [];
+        const uvs = [];
+        const indices = [];
+
+        const wallColor = [0.18, 0.20, 0.26];
+        const floorColor = [0.14, 0.15, 0.20];
+
+        let topIndicesCount = 0;
+
+        if (state.baseShape === 'natural_border' && state.boundaryGeoJSON) {
+          // Fetch exact watertight boundary 3D mesh conforming to coastline / official borders
+          document.getElementById('status-text').textContent = "Synthesizing territorial boundary 3D mesh...";
+          const meshRes = await fetch(`${API_BASE}/api/boundary_mesh`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              bbox: state.bbox,
+              width_mm: state.canvasWidth,
+              depth_mm: state.canvasDepth,
+              base_height: state.baseHeight,
+              target_relief: targetReliefMm,
+              boundary_geojson: state.boundaryGeoJSON,
+              location: state.location,
+              force_refresh: !!forceRefresh
+            })
+          });
+          if (!meshRes.ok) throw new Error(`HTTP ${meshRes.status}: Failed to generate boundary mesh`);
+          const bData = await meshRes.json();
+          if (bData.error) throw new Error(bData.error);
+
+          positions.push(...bData.positions);
+          colors.push(...bData.colors);
+          uvs.push(...bData.uvs);
+          indices.push(...bData.indices);
+          topIndicesCount = bData.top_indices_count;
+          state.naturalNormZ = bData.norm_z;
+
+        } else if (state.baseShape === 'rectangle' || state.baseShape === 'natural_border') {
+          const segX = cols - 1;
+          const segY = rows - 1;
+          const topGrid = [];
+
+          // 1. Top surface
+          for (let r = 0; r <= segY; r++) {
+            const rowIndices = [];
+            const y = (r / segY - 0.5) * state.canvasDepth;
+            for (let c = 0; c <= segX; c++) {
+              const x = (c / segX - 0.5) * state.canvasWidth;
+              const s = sampleElevation(x, y, state.canvasWidth, state.canvasDepth);
+              const z = state.baseHeight + s.norm * targetReliefMm;
+              const idx = positions.length / 3;
+              positions.push(x, y, z);
+              colors.push(...getHypsometricColor(s.elevFeet, s.elevMeters));
+              uvs.push(s.u, s.v);
+              rowIndices.push(idx);
+            }
+            topGrid.push(rowIndices);
+          }
+
+          for (let r = 0; r < segY; r++) {
+            for (let c = 0; c < segX; c++) {
+              const i00 = topGrid[r][c];
+              const i10 = topGrid[r][c + 1];
+              const i11 = topGrid[r + 1][c + 1];
+              const i01 = topGrid[r + 1][c];
+              indices.push(i00, i10, i11);
+              indices.push(i00, i11, i01);
+            }
+          }
+
+          topIndicesCount = indices.length;
+
+          // 2. Skirt Side Walls
+          function addWallQuad(idxA, idxB) {
+            const x1 = positions[idxA * 3], y1 = positions[idxA * 3 + 1], z1 = positions[idxA * 3 + 2];
+            const x2 = positions[idxB * 3], y2 = positions[idxB * 3 + 1], z2 = positions[idxB * 3 + 2];
+            const i0 = positions.length / 3;
+            positions.push(x1, y1, z1,  x2, y2, z2,  x2, y2, 0,  x1, y1, 0);
+            for (let k = 0; k < 4; k++) {
+              colors.push(...wallColor);
+              uvs.push(0, 0);
+            }
+            indices.push(i0, i0 + 1, i0 + 2);
+            indices.push(i0, i0 + 2, i0 + 3);
+          }
+
+          for (let c = 0; c < segX; c++) addWallQuad(topGrid[0][c], topGrid[0][c + 1]);
+          for (let r = 0; r < segY; r++) addWallQuad(topGrid[r][segX], topGrid[r + 1][segX]);
+          for (let c = segX; c > 0; c--) addWallQuad(topGrid[segY][c], topGrid[segY][c - 1]);
+          for (let r = segY; r > 0; r--) addWallQuad(topGrid[r][0], topGrid[r - 1][0]);
+
+          // 3. Flat Bottom Floor
+          const hw = state.canvasWidth / 2, hd = state.canvasDepth / 2;
+          const b0 = positions.length / 3;
+          positions.push(-hw, -hd, 0,  hw, -hd, 0,  hw, hd, 0,  -hw, hd, 0);
+          for (let k = 0; k < 4; k++) {
+            colors.push(...floorColor);
+            uvs.push(0, 0);
+          }
+          indices.push(b0, b0 + 2, b0 + 1);
+          indices.push(b0, b0 + 3, b0 + 2);
+
+        } else {
+          // Circular, Elliptical, or Regular Polygon Base
+          const rings = 36;
+          const sectors = 72;
+          const rx = state.canvasWidth / 2.0;
+          const ry = state.canvasDepth / 2.0;
+
+          function getBoundaryRadius(theta) {
+            if (state.baseShape === 'circle') {
+              return Math.min(rx, ry);
+            } else if (state.baseShape === 'ellipse') {
+              const cosT = Math.cos(theta);
+              const sinT = Math.sin(theta);
+              return (rx * ry) / Math.sqrt((ry * cosT) ** 2 + (rx * sinT) ** 2);
+            } else if (state.baseShape === 'polygon') {
+              const N = Math.max(3, state.baseSides || 6);
+              const rMin = Math.min(rx, ry);
+              const alpha = (2.0 * Math.PI) / N;
+              const phi = ((theta - Math.PI / 2.0) % (2.0 * Math.PI) + 2.0 * Math.PI) % (2.0 * Math.PI);
+              const beta = (phi % alpha) - alpha / 2.0;
+              return rMin * Math.cos(alpha / 2.0) / Math.cos(beta);
+            }
+            return Math.min(rx, ry);
+          }
+
+          // Center vertex
+          const sCenter = sampleElevation(0, 0, state.canvasWidth, state.canvasDepth);
+          const zCenter = state.baseHeight + sCenter.norm * targetReliefMm;
+          const centerIdx = positions.length / 3;
+          positions.push(0, 0, zCenter);
+          colors.push(...getHypsometricColor(sCenter.elevFeet, sCenter.elevMeters));
+          uvs.push(sCenter.u, sCenter.v);
+
+          // Concentric rings
+          const ringGrid = [];
+          for (let i = 1; i <= rings; i++) {
+            const u = i / rings;
+            const ringRow = [];
+            for (let j = 0; j < sectors; j++) {
+              const theta = (2.0 * Math.PI * j) / sectors;
+              const rBound = getBoundaryRadius(theta);
+              const x = u * rBound * Math.cos(theta);
+              const y = u * rBound * Math.sin(theta);
+              const s = sampleElevation(x, y, state.canvasWidth, state.canvasDepth);
+              const z = state.baseHeight + s.norm * targetReliefMm;
+              const idx = positions.length / 3;
+              positions.push(x, y, z);
+              colors.push(...getHypsometricColor(s.elevFeet, s.elevMeters));
+              uvs.push(s.u, s.v);
+              ringRow.push(idx);
+            }
+            ringGrid.push(ringRow);
+          }
+
+          // Center fan
+          for (let j = 0; j < sectors; j++) {
+            const next = (j + 1) % sectors;
+            indices.push(centerIdx, ringGrid[0][j], ringGrid[0][next]);
+          }
+
+          // Ring quads
+          for (let i = 0; i < rings - 1; i++) {
+            for (let j = 0; j < sectors; j++) {
+              const next = (j + 1) % sectors;
+              const i00 = ringGrid[i][j];
+              const i10 = ringGrid[i + 1][j];
+              const i11 = ringGrid[i + 1][next];
+              const i01 = ringGrid[i][next];
+              indices.push(i00, i10, i11);
+              indices.push(i00, i11, i01);
+            }
+          }
+
+          topIndicesCount = indices.length;
+
+          // Skirt Wall along outer perimeter
+          const outerRing = ringGrid[rings - 1];
+          const botOuterRing = [];
+          for (let j = 0; j < sectors; j++) {
+            const topIdx = outerRing[j];
+            const x = positions[topIdx * 3];
+            const y = positions[topIdx * 3 + 1];
+            const botIdx = positions.length / 3;
+            positions.push(x, y, 0);
+            colors.push(...wallColor);
+            uvs.push(0, 0);
+            botOuterRing.push(botIdx);
+          }
+
+          for (let j = 0; j < sectors; j++) {
+            const next = (j + 1) % sectors;
+            const t0 = outerRing[j], t1 = outerRing[next];
+            const b0 = botOuterRing[j], b1 = botOuterRing[next];
+            indices.push(t0, b0, b1);
+            indices.push(t0, b1, t1);
+          }
+
+          // Bottom Floor
+          const floorCenterIdx = positions.length / 3;
+          positions.push(0, 0, 0);
+          colors.push(...floorColor);
+          uvs.push(0, 0);
+          for (let j = 0; j < sectors; j++) {
+            const next = (j + 1) % sectors;
+            indices.push(floorCenterIdx, botOuterRing[next], botOuterRing[j]);
+          }
+        }
+
+        const geom = new THREE.BufferGeometry();
+        geom.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        geom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+        geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+        geom.setIndex(indices);
+        geom.computeVertexNormals();
+
+        // Material groups: 0 = Top surface, 1 = Skirts and Floor
+        geom.addGroup(0, topIndicesCount, 0);
+        geom.addGroup(topIndicesCount, indices.length - topIndicesCount, 1);
+
+        const topoMaterial = new THREE.MeshStandardMaterial({
+          vertexColors: true,
+          roughness: 0.50,
+          metalness: 0.05,
+          flatShading: false,
+          side: THREE.DoubleSide
+        });
+
+        const skirtMaterial = new THREE.MeshStandardMaterial({
+          vertexColors: true,
+          roughness: 0.85,
+          metalness: 0.1,
+          side: THREE.DoubleSide
+        });
+
+        // 2D Map Texture Material
+        const shouldRefreshTex = forceRefresh || state.forceRefreshTexture;
+        state.forceRefreshTexture = false;
+        const refreshTexParam = shouldRefreshTex ? `&force_refresh=true&t=${Date.now()}` : '';
+        const textureUrl = `${API_BASE}/api/map_texture?south=${state.bbox.south}&west=${state.bbox.west}&north=${state.bbox.north}&east=${state.bbox.east}&size=1024${refreshTexParam}`;
+        const textureLoader = new THREE.TextureLoader();
+        const mapTexture = textureLoader.load(
+          textureUrl,
+          () => {
+            if (terrainMesh3d && state.terrainDisplayMode === 'map') {
+              if (Array.isArray(terrainMesh3d.material)) {
+                terrainMesh3d.material[0].needsUpdate = true;
+              }
+            }
+          },
+          undefined,
+          (err) => {
+            console.warn("Failed to load map texture, falling back to topo relief:", err);
+            state.terrainDisplayMode = 'topo';
+            updateDisplayModeUI();
+          }
+        );
+        mapTexture.encoding = THREE.sRGBEncoding;
+        mapTexture.generateMipmaps = true;
+        mapTexture.minFilter = THREE.LinearMipmapLinearFilter;
+        mapTexture.magFilter = THREE.LinearFilter;
+
+        const mapMaterial = new THREE.MeshStandardMaterial({
+          map: mapTexture,
+          roughness: 0.60,
+          metalness: 0.02,
+          flatShading: false,
+          side: THREE.DoubleSide
+        });
+
+        window.terrainMaterials = { mapMaterial, topoMaterial, skirtMaterial, mapTexture };
+
+        const activeTopMaterial = (state.terrainDisplayMode === 'map') ? mapMaterial : topoMaterial;
+        terrainMesh3d = new THREE.Mesh(geom, [activeTopMaterial, skirtMaterial]);
+        scene3d.add(terrainMesh3d);
+        updateDisplayModeUI();
+
+        // Auto-frame camera to terrain mesh
+        terrainMesh3d.geometry.computeBoundingBox();
+        const bbox3d = terrainMesh3d.geometry.boundingBox;
+        const center = new THREE.Vector3();
+        bbox3d.getCenter(center);
+        const size = new THREE.Vector3();
+        bbox3d.getSize(size);
+        const maxDim = Math.max(size.x, size.y, size.z, 60);
+
+        if (!cameraInitialized) {
+          controls3d.target.copy(center);
+          camera3d.position.set(center.x, center.y - maxDim * 1.35, center.z + maxDim * 0.95);
+          camera3d.lookAt(center);
+          controls3d.update();
+          cameraInitialized = true;
+        } else {
+          controls3d.update();
+        }
+
+        // Render path ribbon in 3D if present
+        const activeRoute = (state.resolvedRoute && state.resolvedRoute.length >= 2) 
+          ? state.resolvedRoute 
+          : state.pathWaypoints;
+
+        if (activeRoute.length >= 2) {
+          const pathPoints3D = [];
+          const b = state.bbox;
+          const latSpan = Math.max(0.0001, b.north - b.south);
+          const lonSpan = Math.max(0.0001, b.east - b.west);
+          const rotRad = ((state.baseRotation || 0) * Math.PI) / 180.0;
+          const cosR = Math.cos(rotRad);
+          const sinR = Math.sin(rotRad);
+
+          activeRoute.forEach(pt => {
+            const rawX = ((pt[1] - b.west) / lonSpan - 0.5) * state.canvasWidth;
+            const rawY = ((pt[0] - b.south) / latSpan - 0.5) * state.canvasDepth;
+            const x = rawX * cosR + rawY * sinR;
+            const y = -rawX * sinR + rawY * cosR;
+            const normH = sampleElevationNorm(x, y, state.canvasWidth, state.canvasDepth);
+            const z = state.baseHeight + normH * targetReliefMm + 1.2;
+            pathPoints3D.push(new THREE.Vector3(x, y, z));
+          });
+
+          try {
+            const curve = new THREE.CatmullRomCurve3(pathPoints3D);
+            const tubeGeom = new THREE.TubeGeometry(curve, Math.min(pathPoints3D.length * 3, 300), 1.0, 8, false);
+            const tubeMat = new THREE.MeshStandardMaterial({
+              color: 0xff4500,
+              emissive: 0xff2200,
+              emissiveIntensity: 0.35,
+              roughness: 0.3
+            });
+            pathMesh3d = new THREE.Mesh(tubeGeom, tubeMat);
+          } catch (e) {
+            const pathGeom = new THREE.BufferGeometry().setFromPoints(pathPoints3D);
+            const pathMat = new THREE.LineBasicMaterial({ color: 0xff4500, linewidth: 4 });
+            pathMesh3d = new THREE.Line(pathGeom, pathMat);
+          }
+          scene3d.add(pathMesh3d);
+        }
+
+        // Extrude 3D Solid Urban Blocks & Parcels if enabled
+        if (blocksGroup3d) {
+          scene3d.remove(blocksGroup3d);
+          blocksGroup3d = null;
+        }
+
+        if (state.blocks) {
+          const b = state.bbox;
+          const bboxKey = `${b.south.toFixed(4)},${b.west.toFixed(4)},${b.north.toFixed(4)},${b.east.toFixed(4)}_${state.blockMinH}_${state.blockMaxH}_${state.blockGrooveW}`;
+          if (state.blocksLoadedKey !== bboxKey || !state.blocksData || state.blocksData.length === 0) {
+            await loadAndDisplayBlocks();
+          }
+        }
+
+        if (state.blocks && state.blocksData && state.blocksData.length > 0) {
+          blocksGroup3d = new THREE.Group();
+          const blockMat = new THREE.MeshStandardMaterial({
+            color: 0xc4cbd4, // Clean modern architectural light grey
+            roughness: 0.40,
+            metalness: 0.08
+          });
+          const edgeMat = new THREE.LineBasicMaterial({
+            color: 0x475569, // Crisp slate edge outline
+            linewidth: 1
+          });
+
+          const b = state.bbox;
+          const latSpan = Math.max(0.0001, b.north - b.south);
+          const lonSpan = Math.max(0.0001, b.east - b.west);
+
+          const rotRad = ((state.baseRotation || 0) * Math.PI) / 180.0;
+          const cosR = Math.cos(rotRad);
+          const sinR = Math.sin(rotRad);
+
+          state.blocksData.forEach(blk => {
+            const coords = blk.coordinates;
+            if (!coords || coords.length < 3) return;
+
+            const modelPts = [];
+            let sumX = 0, sumY = 0;
+            coords.forEach(pt => {
+              const rawX = ((pt[1] - b.west) / lonSpan - 0.5) * state.canvasWidth;
+              const rawY = ((pt[0] - b.south) / latSpan - 0.5) * state.canvasDepth;
+              const mx = rawX * cosR + rawY * sinR;
+              const my = -rawX * sinR + rawY * cosR;
+              modelPts.push(new THREE.Vector2(mx, my));
+              sumX += mx;
+              sumY += my;
+            });
+
+            const cx = sumX / coords.length;
+            const cy = sumY / coords.length;
+
+            const normH = sampleElevationNorm(cx, cy, state.canvasWidth, state.canvasDepth);
+            const zGround = state.baseHeight + normH * targetReliefMm;
+            const hMm = Math.max(1.0, blk.height_mm || 3.0);
+
+            try {
+              const shape = new THREE.Shape(modelPts);
+              const extrudeGeom = new THREE.ExtrudeGeometry(shape, {
+                steps: 1,
+                depth: hMm,
+                bevelEnabled: false
+              });
+              const mesh = new THREE.Mesh(extrudeGeom, blockMat);
+              mesh.position.z = zGround;
+              blocksGroup3d.add(mesh);
+
+              const edgesGeom = new THREE.EdgesGeometry(extrudeGeom, 35);
+              const edgesMesh = new THREE.LineSegments(edgesGeom, edgeMat);
+              edgesMesh.position.z = zGround;
+              blocksGroup3d.add(edgesMesh);
+            } catch (err) {
+              // Ignore invalid degenerate polygons
+            }
+          });
+
+          scene3d.add(blocksGroup3d);
+        }
+
+        // Render Landmark Highlight Pins in 3D
+        render3DPins();
+
+        document.getElementById('status-text').textContent = 
+          `3D Preview Active: Relief range ${rawMin.toFixed(0)}m - ${rawMax.toFixed(0)}m (${targetReliefMm.toFixed(1)}mm 3D relief).`;
+      } catch (err) {
+        console.error("3D render error:", err);
+        document.getElementById('status-text').textContent = `3D Render error: ${err.message}`;
+
+        // Display user-friendly banner in viewport-3d
+        const card = document.createElement('div');
+        card.id = 'error-3d';
+        card.style.cssText = 'position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); z-index:90; background:rgba(30,15,15,0.95); border:1px solid #ff4444; border-radius:10px; padding:24px 32px; max-width:540px; text-align:center; box-shadow:0 8px 32px rgba(0,0,0,0.6);';
+        
+        const isNetworkTimeout = err.name === 'AbortError' || (err.message && err.message.toLowerCase().includes('timeout'));
+        const errorTitle = isNetworkTimeout ? "⚠️ Elevation Network Timeout" : "⚠️ 3D Preview Error";
+        const errorHelp = isNetworkTimeout ? `
+          <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:16px; line-height:1.4;">
+            The server took longer than expected fetching elevation tiles from AWS Open Data Terrarium. Once downloaded, tiles are cached to disk and load instantly.
+          </div>
+        ` : `
+          <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:16px;">
+            If you are running inside Chrome Remote Desktop, WebGL requires software rasterization flags. You can also view this directly in any browser at:
+            <br><code style="color:var(--accent); font-size:0.85rem;">http://127.0.0.1:8765</code>
+          </div>
+        `;
+
+        card.innerHTML = `
+          <div style="font-size:1.4rem; margin-bottom:8px;">${errorTitle}</div>
+          <div style="font-size:0.9rem; color:#ffbbbb; margin-bottom:16px; line-height:1.4;">${err.message}</div>
+          ${errorHelp}
+          <button onclick="render3DScene()" class="btn-primary" style="margin:0 auto; padding:8px 20px; font-size:0.85rem;">↻ Retry 3D Preview</button>
+        `;
+        container.appendChild(card);
+      } finally {
+        if (loader) loader.style.display = 'none';
+      }
+    }
+
+    // 7. View Tabs Switcher
+    document.getElementById('tab-2d').addEventListener('click', () => {
+      document.getElementById('tab-2d').classList.add('active');
+      document.getElementById('tab-3d').classList.remove('active');
+      document.getElementById('map-view').style.display = 'block';
+      document.getElementById('viewport-3d').style.display = 'none';
+      map.invalidateSize();
+    });
+
+    document.getElementById('tab-3d').addEventListener('click', () => {
+      document.getElementById('tab-3d').classList.add('active');
+      document.getElementById('tab-2d').classList.remove('active');
+      document.getElementById('map-view').style.display = 'none';
+      document.getElementById('viewport-3d').style.display = 'block';
+      requestAnimationFrame(() => {
+        if (isDirty3D || !terrainMesh3d) {
+          render3DScene();
+          isDirty3D = false;
+        } else {
+          render3DPins();
+          if (camera3d && renderer3d) {
+            const container = document.getElementById('viewport-3d');
+            const w = container.clientWidth || (window.innerWidth - 360);
+            const h = container.clientHeight || (window.innerHeight - 56);
+            if (w > 0 && h > 0) {
+              camera3d.aspect = w / h;
+              camera3d.updateProjectionMatrix();
+              renderer3d.setSize(w, h);
+            }
+          }
+        }
+      });
+    });
+
+    // 3D Viewport Controls & Preset Cameras
+    document.getElementById('btn-toggle-texture')?.addEventListener('click', toggleTerrainDisplayMode);
+    document.getElementById('btn-cam-2d')?.addEventListener('click', () => setCameraPreset('2d'));
+    document.getElementById('btn-cam-iso')?.addEventListener('click', () => setCameraPreset('iso'));
+    document.getElementById('btn-cam-top')?.addEventListener('click', () => setCameraPreset('top'));
+    document.getElementById('btn-cam-reset')?.addEventListener('click', () => setCameraPreset('reset'));
+
+    // 8. Export Generation
+    document.getElementById('export-btn').addEventListener('click', async () => {
+      const spinner = document.getElementById('export-spinner');
+      const btn = document.getElementById('export-btn');
+      spinner.style.display = 'inline-block';
+      btn.disabled = true;
+      document.getElementById('status-text').textContent = "Generating precision meshes, carving insets, and slicing tiles...";
+
+      const activeRoute = (state.resolvedRoute && state.resolvedRoute.length >= 2) 
+        ? state.resolvedRoute 
+        : state.pathWaypoints;
+
+      const payload = {
+        location: state.location,
+        bbox: state.bbox,
+        width: state.canvasWidth,
+        depth: state.canvasDepth,
+        base_shape: state.baseShape,
+        base_sides: state.baseSides,
+        base_height: state.baseHeight,
+        rotation: state.baseRotation || 0.0,
+        target_height: state.targetRelief,
+        orientation: document.getElementById('select-orientation').value,
+        topography: document.getElementById('chk-topography').checked,
+        blocks: state.blocks,
+        block_min_h: state.blockMinH,
+        block_max_h: state.blockMaxH,
+        block_groove_w: state.blockGrooveW,
+        buildings: state.blocks,
+        dowels: document.getElementById('chk-dowels').checked,
+        path_waypoints: activeRoute,
+        landmarks: state.landmarkPins,
+        boundary_geojson: state.boundaryGeoJSON
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/api/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        document.getElementById('status-text').innerHTML = 
+          `✅ <b>Success!</b> Generated ${data.num_tiles} tile STLs in <code>${data.output_dir}</code>. <a href="${API_BASE}/api/guide" target="_blank" style="color:var(--accent);">View Assembly Guide</a>`;
+      } catch (err) {
+        document.getElementById('status-text').textContent = `Export failed: ${err.message}`;
+      } finally {
+        spinner.style.display = 'none';
+        btn.disabled = false;
+      }
+    });
+
+    // Initial setup
+    updateTiling();
+    renderBoundingBox();
+
+    // Direct URL parameter routing (?q=Bengaluru&blocks=1&tab=3d)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('blocks') === '1') {
+      document.getElementById('blocks-toggle').checked = true;
+      state.blocks = true;
+    }
+    if (urlParams.get('tab') === '3d') {
+      document.getElementById('tab-3d').classList.add('active');
+      document.getElementById('tab-2d').classList.remove('active');
+      document.getElementById('map-view').style.display = 'none';
+      document.getElementById('viewport-3d').style.display = 'block';
+    }
+    const queryLoc = urlParams.get('q');
+    if (queryLoc) {
+      document.getElementById('location-input').value = queryLoc;
+      doSearch();
+    } else if (urlParams.get('tab') === '3d') {
+      render3DScene();
+    }
+  </script>
+</body>
+</html>
