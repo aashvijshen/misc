@@ -9,7 +9,7 @@ import math
 import numpy as np
 from typing import List, Tuple, Dict, Any, Optional
 import shapely
-from shapely.geometry import Polygon, Point, MultiPolygon, shape, box
+from shapely.geometry import Polygon, Point, MultiPolygon, LineString, shape, box
 import shapely.ops
 from scipy.spatial import Delaunay
 
@@ -341,6 +341,268 @@ def _emit_skirt_walls_with_biscuit_pockets(
     return all_v, wall_faces, pockets_created
 
 
+def carve_pin_sockets_into_mesh(
+    top_verts: np.ndarray,
+    top_faces: List[List[int]],
+    pin_xy_list: List[Dict[str, Any]],
+    socket_radius_mm: float = 1.15,
+    socket_depth_mm: float = 2.20
+) -> Tuple[np.ndarray, List[List[int]], List[Dict[str, Any]]]:
+    """Replaces the 1-ring of the top-surface vertex at each pin (px, py) with a
+    100% 2-manifold circular blind socket hole of radius `socket_radius_mm` and
+    depth `socket_depth_mm` (floor clamped to >= 0.80 mm).
+
+    Returns:
+        (updated_top_verts, updated_top_faces, sockets_carved_metadata)
+    """
+    if not pin_xy_list or len(top_verts) == 0 or not top_faces:
+        return top_verts, top_faces, []
+
+    verts_list = top_verts.tolist()
+    faces_list = [list(f) for f in top_faces]
+    sockets_carved: List[Dict[str, Any]] = []
+
+    # Identify exterior boundary vertices of top_faces so we never modify perimeter vertices
+    edge_cnt: Dict[Tuple[int, int], int] = {}
+    for f in faces_list:
+        for i in range(3):
+            e = (f[i], f[(i + 1) % 3])
+            edge_cnt[e] = edge_cnt.get(e, 0) + 1
+    boundary_verts = set()
+    for (a, b) in edge_cnt:
+        if (b, a) not in edge_cnt:
+            boundary_verts.add(a)
+            boundary_verts.add(b)
+
+    used_center_verts = set()
+
+    for pin in pin_xy_list:
+        px = float(pin["x"])
+        py = float(pin["y"])
+
+        # Find the closest interior top vertex to (px, py)
+        v_arr = np.array(verts_list, dtype=np.float32)
+        dists = np.hypot(v_arr[:, 0] - px, v_arr[:, 1] - py)
+        order = np.argsort(dists)
+        v_center = None
+        for cand in order[:8]:
+            c_idx = int(cand)
+            if c_idx not in boundary_verts and c_idx not in used_center_verts and dists[c_idx] <= 6.0:
+                v_center = c_idx
+                break
+
+        if v_center is None:
+            continue
+
+        # Find all top faces incident to v_center
+        inc_indices = [fi for fi, f in enumerate(faces_list) if v_center in f]
+        if len(inc_indices) < 3:
+            continue
+
+        # Build ordered CCW loop of 1-ring outer edges (u_i -> u_{i+1}) around v_center
+        ring_next: Dict[int, int] = {}
+        valid_ring = True
+        for fi in inc_indices:
+            f = faces_list[fi]
+            if f[0] == v_center:
+                a, b = f[1], f[2]
+            elif f[1] == v_center:
+                a, b = f[2], f[0]
+            else:
+                a, b = f[0], f[1]
+            if a in ring_next:
+                valid_ring = False
+                break
+            ring_next[a] = b
+
+        if not valid_ring or not ring_next:
+            continue
+
+        start_u = next(iter(ring_next.keys()))
+        loop_u = [start_u]
+        curr = start_u
+        while len(loop_u) < len(ring_next):
+            nxt = ring_next.get(curr)
+            if nxt is None or nxt == start_u:
+                break
+            loop_u.append(nxt)
+            curr = nxt
+
+        if len(loop_u) != len(ring_next) or ring_next.get(loop_u[-1]) != start_u:
+            continue
+
+        # Snap v_center to exact (px, py) and ensure 1-ring neighbors lie outside socket_radius + 0.35 mm
+        z_rim = float(verts_list[v_center][2])
+        if z_rim < 1.3:
+            continue
+        z_bot = max(0.80, z_rim - socket_depth_mm)
+
+        verts_list[v_center][0] = px
+        verts_list[v_center][1] = py
+        verts_list[v_center][2] = z_bot  # Repurpose v_center as the bottom-center floor vertex!
+        used_center_verts.add(v_center)
+        for u_idx in loop_u:
+            used_center_verts.add(u_idx)
+            if u_idx not in boundary_verts:
+                ux, uy = verts_list[u_idx][0] - px, verts_list[u_idx][1] - py
+                ud = math.hypot(ux, uy)
+                min_d = socket_radius_mm + 0.45
+                if 1e-4 < ud < min_d:
+                    verts_list[u_idx][0] = px + (ux / ud) * min_d
+                    verts_list[u_idx][1] = py + (uy / ud) * min_d
+
+        # Create circular socket rim (rt_i, rtm_i) at z_rim and bottom ring (rb_i, rbm_i) at z_bot
+        m = len(loop_u)
+        angles = [math.atan2(verts_list[u][1] - py, verts_list[u][0] - px) for u in loop_u]
+        rt_indices = []
+        rtm_indices = []
+        rb_indices = []
+        rbm_indices = []
+
+        for i in range(m):
+            a0 = angles[i]
+            a1 = angles[(i + 1) % m]
+            da = (a1 - a0 + math.pi) % (2.0 * math.pi) - math.pi
+            if da <= 0:
+                da += 2.0 * math.pi
+            amid = a0 + 0.5 * da
+
+            x0, y0 = px + socket_radius_mm * math.cos(a0), py + socket_radius_mm * math.sin(a0)
+            xm, ym = px + socket_radius_mm * math.cos(amid), py + socket_radius_mm * math.sin(amid)
+
+            base_v = len(verts_list)
+            verts_list.append([x0, y0, z_rim])  # rt_i
+            verts_list.append([xm, ym, z_rim])  # rtm_i
+            verts_list.append([x0, y0, z_bot])  # rb_i
+            verts_list.append([xm, ym, z_bot])  # rbm_i
+            rt_indices.append(base_v)
+            rtm_indices.append(base_v + 1)
+            rb_indices.append(base_v + 2)
+            rbm_indices.append(base_v + 3)
+
+        # Remove original 1-ring faces and replace with watertight socket bridge, walls, and floor
+        inc_set = set(inc_indices)
+        faces_list = [f for fi, f in enumerate(faces_list) if fi not in inc_set]
+
+        for i in range(m):
+            u0 = loop_u[i]
+            u1 = loop_u[(i + 1) % m]
+            rt0 = rt_indices[i]
+            rtm = rtm_indices[i]
+            rt1 = rt_indices[(i + 1) % m]
+            rb0 = rb_indices[i]
+            rbm = rbm_indices[i]
+            rb1 = rb_indices[(i + 1) % m]
+
+            # 1. Top surface bridge from outer edge (u0, u1) to circular arc (rt0 -> rtm -> rt1)
+            faces_list.append([u0, u1, rtm])
+            faces_list.append([u0, rtm, rt0])
+            faces_list.append([rtm, u1, rt1])
+
+            # 2. Vertical cylindrical socket walls from (rt0 -> rtm -> rt1) down to (rb0 -> rbm -> rb1)
+            faces_list.append([rt0, rtm, rbm])
+            faces_list.append([rt0, rbm, rb0])
+            faces_list.append([rtm, rt1, rb1])
+            faces_list.append([rtm, rb1, rbm])
+
+            # 3. Socket bottom floor fan around v_center (at z_bot, facing +Z)
+            faces_list.append([rb0, rbm, v_center])
+            faces_list.append([rbm, rb1, v_center])
+
+        sockets_carved.append({
+            "name": pin.get("name", "Landmark"),
+            "lat": pin.get("lat"),
+            "lon": pin.get("lon"),
+            "x_mm": round(px, 2),
+            "y_mm": round(py, 2),
+            "z_surface_mm": round(z_rim, 2),
+            "z_bottom_mm": round(z_bot, 2),
+            "diameter_mm": round(socket_radius_mm * 2.0, 2)
+        })
+
+    return np.array(verts_list, dtype=np.float32), faces_list, sockets_carved
+
+
+def generate_landmark_pin_mesh(
+    peg_diameter_mm: float = 2.00,
+    peg_length_mm: float = 2.00,
+    collar_diameter_mm: float = 3.60,
+    head_diameter_mm: float = 5.60,
+    segments: int = 16,
+    zero_base_for_printing: bool = False
+) -> SolidMesh:
+    """Generates a 100% 2-manifold, support-free 3D landmark marker pin.
+
+    When `zero_base_for_printing=False` (default for assembly placement):
+      - Z in [-peg_length_mm, 0.0] is the Ø2.00mm insertion peg that slides into the terrain socket.
+      - Z = 0.0 is the seating shoulder collar resting flush on the terrain surface.
+      - Z in [0.0, +7.50] is the collar, stem, and support-free 45° chamfered pin head.
+    When `zero_base_for_printing=True` (for `accessories/landmark_pins.stl` print bed):
+      - Shifted by +peg_length_mm so the bottom face sits flat on Z = 0.0.
+    """
+    r_peg = peg_diameter_mm / 2.0
+    r_col = collar_diameter_mm / 2.0
+    r_stem = max(1.05, r_peg * 1.1)
+    r_head = head_diameter_mm / 2.0
+    z_shift = peg_length_mm if zero_base_for_printing else 0.0
+
+    # Profile rings (radius, z) from bottom tip to top head
+    profile = [
+        (max(0.5, r_peg - 0.30), -peg_length_mm + z_shift),          # 0: Bottom lead-in chamfer
+        (r_peg, -peg_length_mm + 0.30 + z_shift),                    # 1: Peg lower body
+        (r_peg, 0.0 + z_shift),                                      # 2: Peg top / neck
+        (r_col, 0.40 + z_shift),                                     # 3: 45° seating collar flare
+        (r_col, 0.90 + z_shift),                                     # 4: Seating collar rim
+        (r_stem, 1.40 + z_shift),                                    # 5: Stem base
+        (r_stem, 3.40 + z_shift),                                    # 6: Stem top
+        (r_head, 3.40 + (r_head - r_stem) + z_shift),                # 7: 45° support-free lower head equator
+        (r_head * 0.92, 5.90 + z_shift),                             # 8: Upper head dome
+        (r_head * 0.55, 6.80 + z_shift),                             # 9: Upper crown
+    ]
+    z_bottom_cap = profile[0][1]
+    z_top_cap = 7.30 + z_shift
+
+    verts: List[List[float]] = []
+    faces: List[List[int]] = []
+
+    # Vertex 0: bottom center cap; Vertex 1: top center cap
+    verts.append([0.0, 0.0, z_bottom_cap])
+    verts.append([0.0, 0.0, z_top_cap])
+
+    ring_offsets = []
+    for rad, z_val in profile:
+        base_idx = len(verts)
+        ring_offsets.append(base_idx)
+        for s in range(segments):
+            ang = (2.0 * math.pi * s) / segments
+            verts.append([rad * math.cos(ang), rad * math.sin(ang), z_val])
+
+    # Bottom cap fan (normal -Z)
+    r0 = ring_offsets[0]
+    for s in range(segments):
+        s_next = (s + 1) % segments
+        faces.append([0, r0 + s_next, r0 + s])
+
+    # Side quad strips between consecutive rings
+    for k in range(len(profile) - 1):
+        rk0 = ring_offsets[k]
+        rk1 = ring_offsets[k + 1]
+        for s in range(segments):
+            s_next = (s + 1) % segments
+            a, b = rk0 + s, rk0 + s_next
+            c, d = rk1 + s_next, rk1 + s
+            faces.append([a, b, c])
+            faces.append([a, c, d])
+
+    # Top cap fan (normal +Z)
+    r_last = ring_offsets[-1]
+    for s in range(segments):
+        s_next = (s + 1) % segments
+        faces.append([1, r_last + s, r_last + s_next])
+
+    return SolidMesh(np.array(verts, dtype=np.float32), np.array(faces, dtype=np.int32))
+
+
 def generate_terrain_mesh(
     elev_grid: np.ndarray,
     bbox: BoundingBox,
@@ -358,11 +620,19 @@ def generate_terrain_mesh(
     global_z_scale: Optional[float] = None,
     active_seams: Optional[Dict[str, bool]] = None,
     dowel_config: Optional[Any] = None,
-    tile_clip_box_norm: Optional[Tuple[float, float, float, float]] = None
+    tile_clip_box_norm: Optional[Tuple[float, float, float, float]] = None,
+    route_waypoints_latlon: Optional[List[Tuple[float, float]]] = None,
+    landmark_pins_latlon: Optional[List[Dict[str, Any]]] = None,
+    tolerance_config: Optional[Any] = None,
+    global_bbox: Optional[BoundingBox] = None,
+    global_width_mm: Optional[float] = None,
+    global_depth_mm: Optional[float] = None,
+    tile_offset_xy_mm: Tuple[float, float] = (0.0, 0.0)
 ) -> SolidMesh:
     """Generates a watertight, solid terrain mesh supporting multiple base shapes:
     rectangle, circle, ellipse, regular polygon (N-gon), or natural borders,
-    with custom orientation rotation and subterranean biscuit dowel pockets on internal tile seams.
+    with custom orientation rotation, subterranean biscuit dowel pockets on internal tile seams,
+    recessed route guide trenches, and 2-manifold landmark pin sockets.
     """
     rows, cols = elev_grid.shape
     raw_min = float(np.min(elev_grid))
@@ -396,9 +666,61 @@ def generate_terrain_mesh(
     cos_r = math.cos(rad)
     sin_r = math.sin(rad)
 
-    def sample_z(x_mm: float, y_mm: float) -> float:
+    # Project route waypoints and landmark pins into this tile's local (x_mm, y_mm) frame
+    eff_bbox = global_bbox if global_bbox is not None else bbox
+    eff_w = global_width_mm if global_width_mm is not None else width_mm
+    eff_d = global_depth_mm if global_depth_mm is not None else depth_mm
+    ox, oy = tile_offset_xy_mm
+    gcx_rot, gcy_rot = eff_w / 2.0, eff_d / 2.0
+
+    def latlon_to_tile_xy(lat: float, lon: float) -> Tuple[float, float]:
+        gx = ((lon - eff_bbox.west) / max(1e-6, eff_bbox.lon_span)) * eff_w
+        gy = ((lat - eff_bbox.south) / max(1e-6, eff_bbox.lat_span)) * eff_d
+        if abs(rotation_deg) > 1e-4:
+            dx_g, dy_g = gx - gcx_rot, gy - gcy_rot
+            gx = gcx_rot + dx_g * cos_r + dy_g * sin_r
+            gy = gcy_rot - dx_g * sin_r + dy_g * cos_r
+        return float(gx - ox), float(gy - oy)
+
+    path_w_mm = float(getattr(tolerance_config, "path_default_width", 2.0)) if tolerance_config else 2.0
+    path_d_mm = float(getattr(tolerance_config, "path_default_depth", 1.6)) if tolerance_config else 1.6
+    path_clr_mm = float(getattr(tolerance_config, "path_joint_clearance", 0.20)) if tolerance_config else 0.20
+    half_trench_w = (path_w_mm / 2.0) + path_clr_mm
+    pin_clr_mm = float(getattr(tolerance_config, "pin_socket_clearance", 0.15)) if tolerance_config else 0.15
+    socket_radius_mm = 1.00 + pin_clr_mm  # Ø2.00mm peg + 2*0.15mm = Ø2.30mm socket
+
+    route_line_local: Optional[LineString] = None
+    if route_waypoints_latlon and len(route_waypoints_latlon) >= 2:
+        r_pts = [latlon_to_tile_xy(float(pt[0]), float(pt[1])) for pt in route_waypoints_latlon]
+        try:
+            cand_line = LineString(r_pts)
+            tile_expanded = box(-5.0, -5.0, width_mm + 5.0, depth_mm + 5.0)
+            if cand_line.intersects(tile_expanded):
+                route_line_local = cand_line
+        except Exception:
+            route_line_local = None
+
+    local_pins: List[Dict[str, Any]] = []
+    if landmark_pins_latlon:
+        for p in landmark_pins_latlon:
+            try:
+                plat = float(p["lat"])
+                plon = float(p["lon"])
+                lx, ly = latlon_to_tile_xy(plat, plon)
+                if 2.5 <= lx <= width_mm - 2.5 and 2.5 <= ly <= depth_mm - 2.5:
+                    local_pins.append({
+                        "name": p.get("name", "Landmark"),
+                        "lat": plat,
+                        "lon": plon,
+                        "x": lx,
+                        "y": ly
+                    })
+            except Exception:
+                pass
+
+    def sample_z(x_mm: float, y_mm: float, include_route_trench: bool = True) -> float:
         """Bilinearly interpolates elevation height at physical model coordinate (x, y),
-        accounting for base rotation."""
+        accounting for base rotation and optional recessed route guide trench."""
         dx = x_mm - cx
         dy = y_mm - cy
         x_rot = cx + dx * cos_r - dy * sin_r
@@ -414,7 +736,56 @@ def generate_terrain_mesh(
         dr = float(np.clip(r_float - r0, 0.0, 1.0))
         top = (1.0 - dc) * z_grid[r0, c0] + dc * z_grid[r0, c1]
         bot = (1.0 - dc) * z_grid[r1, c0] + dc * z_grid[r1, c1]
-        return float((1.0 - dr) * top + dr * bot)
+        z_val = float((1.0 - dr) * top + dr * bot)
+
+        if include_route_trench and route_line_local is not None:
+            d_r = float(route_line_local.distance(Point(x_mm, y_mm)))
+            if d_r <= half_trench_w:
+                z_val = max(0.80, z_val - path_d_mm)
+            elif d_r <= half_trench_w + 0.40:
+                t = (d_r - half_trench_w) / 0.40
+                z_val = max(0.80, z_val - path_d_mm * (1.0 - t))
+        return z_val
+
+    def _inject_route_and_pin_pts(poly_2d: Polygon, base_int_pts: List[Tuple[float, float]]) -> List[Tuple[float, float]]:
+        pts_out = list(base_int_pts)
+        if route_line_local is not None:
+            try:
+                seg_line = shapely.segmentize(route_line_local, max_segment_length=1.5)
+                lines_to_extract = [seg_line] if seg_line.geom_type == "LineString" else list(getattr(seg_line, "geoms", []))
+                for ln in lines_to_extract:
+                    l_coords = list(ln.coords)
+                    for i, (rx, ry) in enumerate(l_coords):
+                        for off_d in (0.0, -half_trench_w, half_trench_w):
+                            if off_d == 0.0:
+                                px, py = rx, ry
+                            else:
+                                p_next = l_coords[min(i + 1, len(l_coords) - 1)]
+                                p_prev = l_coords[max(i - 1, 0)]
+                                dx_l, dy_l = p_next[0] - p_prev[0], p_next[1] - p_prev[1]
+                                nl = math.hypot(dx_l, dy_l)
+                                if nl < 1e-4:
+                                    continue
+                                px = rx - (dy_l / nl) * off_d
+                                py = ry + (dx_l / nl) * off_d
+                            pt_obj = Point(px, py)
+                            if poly_2d.contains(pt_obj) and poly_2d.exterior.distance(pt_obj) > 1.2:
+                                pts_out.append((float(px), float(py)))
+            except Exception:
+                pass
+
+        if local_pins:
+            r_ring = socket_radius_mm + 0.85
+            for pin in local_pins:
+                px, py = float(pin["x"]), float(pin["y"])
+                pt_c = Point(px, py)
+                if poly_2d.contains(pt_c) and poly_2d.exterior.distance(pt_c) > r_ring + 0.5:
+                    pts_out = [p for p in pts_out if math.hypot(p[0] - px, p[1] - py) > r_ring + 0.3]
+                    pts_out.append((px, py))
+                    for k in range(8):
+                        ang = (2.0 * math.pi * k) / 8.0
+                        pts_out.append((px + r_ring * math.cos(ang), py + r_ring * math.sin(ang)))
+        return pts_out
 
     # -------------------------------------------------------------
     # CASE A: Natural Territorial / Coastline Border Base
@@ -445,6 +816,7 @@ def generate_terrain_mesh(
             all_verts_list = []
             all_faces_list = []
             all_pockets_list = []
+            all_sockets_list = []
             vert_offset = 0
 
             w_lon, e_lon = bbox.west, bbox.east
@@ -495,6 +867,7 @@ def generate_terrain_mesh(
                         if sh_poly.contains(p) and sh_poly.exterior.distance(p) > 1.5:
                             int_pts.append((float(x), float(y)))
 
+                int_pts = _inject_route_and_pin_pts(sh_poly, int_pts)
                 pts_2d = perim_xy + int_pts
                 pts_arr = np.array(pts_2d, dtype=np.float32)
 
@@ -516,18 +889,25 @@ def generate_terrain_mesh(
 
                 top_z = np.array([sample_z(pt[0], pt[1]) for pt in pts_2d], dtype=np.float32)
                 top_verts = np.column_stack([pts_arr, top_z])
-                off = len(top_verts)
-
-                part_faces = []
-                for f in valid_faces:
-                    part_faces.append([vert_offset + f[0], vert_offset + f[1], vert_offset + f[2]])
+                orig_faces = [list(f) for f in valid_faces]
 
                 edge_counts = {}
-                for f in valid_faces:
+                for f in orig_faces:
                     for i in range(3):
                         e = (f[i], f[(i + 1) % 3])
                         edge_counts[e] = edge_counts.get(e, 0) + 1
                 top_boundary_edges = [e for e in edge_counts if (e[1], e[0]) not in edge_counts]
+
+                poly_pins = [p for p in local_pins if sh_poly.contains(Point(p["x"], p["y"]))]
+                top_verts, carved_top_faces, sockets = carve_pin_sockets_into_mesh(
+                    top_verts, orig_faces, poly_pins, socket_radius_mm=socket_radius_mm
+                )
+                all_sockets_list.extend(sockets)
+                off = len(top_verts)
+
+                part_faces = []
+                for f in carved_top_faces:
+                    part_faces.append([vert_offset + f[0], vert_offset + f[1], vert_offset + f[2]])
 
                 part_verts, wall_faces, pockets = _emit_skirt_walls_with_biscuit_pockets(
                     top_verts=top_verts,
@@ -541,7 +921,7 @@ def generate_terrain_mesh(
                 part_faces.extend(wall_faces)
                 all_pockets_list.extend(pockets)
 
-                for f in valid_faces:
+                for f in orig_faces:
                     part_faces.append([vert_offset + off + f[0], vert_offset + off + f[2], vert_offset + off + f[1]])
 
                 all_verts_list.append(part_verts)
@@ -553,6 +933,7 @@ def generate_terrain_mesh(
                 full_faces = np.array(all_faces_list, dtype=np.int32)
                 mesh = SolidMesh(full_verts, full_faces)
                 mesh.pockets_created = all_pockets_list
+                mesh.sockets_carved = all_sockets_list
                 return mesh
         except Exception:
             pass
@@ -565,19 +946,30 @@ def generate_terrain_mesh(
         y_coords = np.linspace(0, depth_mm, rows, dtype=np.float32)
         xx, yy = np.meshgrid(x_coords, y_coords)
 
-        top_verts = np.column_stack([xx.ravel(), yy.ravel(), z_grid.ravel()])
-        off = len(top_verts)
+        if route_line_local is not None or abs(rotation_deg) > 1e-4:
+            flat_x = xx.ravel()
+            flat_y = yy.ravel()
+            flat_z = np.array([sample_z(float(fx), float(fy)) for fx, fy in zip(flat_x, flat_y)], dtype=np.float32)
+            top_verts = np.column_stack([flat_x, flat_y, flat_z])
+        else:
+            top_verts = np.column_stack([xx.ravel(), yy.ravel(), z_grid.ravel()])
 
         def v_idx(r, c):
             return r * cols + c
 
-        faces = []
+        orig_top_faces = []
         for r in range(rows - 1):
             for c in range(cols - 1):
                 i00, i10 = v_idx(r, c), v_idx(r, c + 1)
                 i11, i01 = v_idx(r + 1, c + 1), v_idx(r + 1, c)
-                faces.append([i00, i10, i11])
-                faces.append([i00, i11, i01])
+                orig_top_faces.append([i00, i10, i11])
+                orig_top_faces.append([i00, i11, i01])
+
+        top_verts, carved_top_faces, sockets = carve_pin_sockets_into_mesh(
+            top_verts, orig_top_faces, local_pins, socket_radius_mm=socket_radius_mm
+        )
+        off = len(top_verts)
+        faces = list(carved_top_faces)
 
         # Directed CCW top boundary edges along South, East, North, West walls
         top_boundary_edges = []
@@ -614,6 +1006,7 @@ def generate_terrain_mesh(
 
         mesh = SolidMesh(all_verts, np.array(faces, dtype=np.int32))
         mesh.pockets_created = pockets
+        mesh.sockets_carved = sockets
         return mesh
 
     # -------------------------------------------------------------
@@ -675,6 +1068,7 @@ def generate_terrain_mesh(
             if base_poly.contains(p) and base_poly.exterior.distance(p) > 1.5:
                 int_pts.append((float(x), float(y)))
 
+    int_pts = _inject_route_and_pin_pts(base_poly, int_pts)
     all_2d_pts = perimeter_xy + int_pts
     pts_arr = np.array(all_2d_pts, dtype=np.float32)
 
@@ -693,16 +1087,22 @@ def generate_terrain_mesh(
 
     top_z = np.array([sample_z(pt[0], pt[1]) for pt in all_2d_pts], dtype=np.float32)
     top_verts = np.column_stack([pts_arr, top_z])
-    offset = len(top_verts)
-
-    faces = list(valid_faces)
+    orig_faces = [list(f) for f in valid_faces]
 
     edge_counts = {}
-    for f in valid_faces:
+    for f in orig_faces:
         for i in range(3):
             e = (f[i], f[(i + 1) % 3])
             edge_counts[e] = edge_counts.get(e, 0) + 1
     top_boundary_edges = [e for e in edge_counts if (e[1], e[0]) not in edge_counts]
+
+    poly_pins = [p for p in local_pins if base_poly.contains(Point(p["x"], p["y"]))]
+    top_verts, carved_top_faces, sockets = carve_pin_sockets_into_mesh(
+        top_verts, orig_faces, poly_pins, socket_radius_mm=socket_radius_mm
+    )
+    offset = len(top_verts)
+
+    faces = list(carved_top_faces)
 
     all_verts, wall_faces, pockets = _emit_skirt_walls_with_biscuit_pockets(
         top_verts=top_verts,
@@ -715,12 +1115,13 @@ def generate_terrain_mesh(
     )
     faces.extend(wall_faces)
 
-    # Bottom floor (inverted winding of valid_faces)
-    for f in valid_faces:
+    # Bottom floor (inverted winding of orig_faces)
+    for f in orig_faces:
         faces.append([offset + f[0], offset + f[2], offset + f[1]])
 
     mesh = SolidMesh(all_verts, np.array(faces, dtype=np.int32))
     mesh.pockets_created = pockets
+    mesh.sockets_carved = sockets
     return mesh
 
 
@@ -975,7 +1376,9 @@ def generate_path_strip_and_cavity(
     path_width_mm: float = 2.0,
     path_depth_mm: float = 1.6,
     clearance_mm: float = 0.20,
-    tactile_offset_mm: float = 0.40
+    tactile_offset_mm: float = 0.40,
+    global_min_elev: Optional[float] = None,
+    rotation_deg: float = 0.0
 ) -> Tuple[SolidMesh, SolidMesh]:
     """Generates:
     1. The separate slide-in path inlay strip (to be printed in contrasting color).
@@ -985,18 +1388,63 @@ def generate_path_strip_and_cavity(
         (path_inlay_mesh, negative_cutter_mesh)
     """
     rows, cols = elev_grid.shape
-    min_elev = float(np.min(elev_grid))
+    raw_min = float(np.min(elev_grid))
+    raw_max = float(np.max(elev_grid))
+    if global_min_elev is not None:
+        min_elev = global_min_elev
+    elif raw_min < -50.0 and raw_max > 0.0:
+        min_elev = 0.0
+    else:
+        min_elev = raw_min
 
-    # Convert waypoints to model coordinates (X, Y) and sample elevation (Z)
-    model_pts = []
+    cx = width_mm / 2.0
+    cy = depth_mm / 2.0
+    rad = math.radians(rotation_deg)
+    cos_r = math.cos(rad)
+    sin_r = math.sin(rad)
+
+    # Convert waypoints to model coordinates (X, Y) and subdivide every 2.0 mm for smooth terrain conformality
+    raw_xy = []
     for lat, lon in waypoints_lat_lon:
-        x = (lon - bbox.west) / bbox.lon_span * width_mm
-        y = (lat - bbox.south) / bbox.lat_span * depth_mm
-        
-        # Grid index to sample elevation
-        c = int(np.clip((lon - bbox.west) / bbox.lon_span * (cols - 1), 0, cols - 1))
-        r = int(np.clip((lat - bbox.south) / bbox.lat_span * (rows - 1), 0, rows - 1))
-        z = base_height_mm + (elev_grid[r, c] - min_elev) * z_scale
+        x = (lon - bbox.west) / max(1e-6, bbox.lon_span) * width_mm
+        y = (lat - bbox.south) / max(1e-6, bbox.lat_span) * depth_mm
+        if abs(rotation_deg) > 1e-4:
+            dx, dy = x - cx, y - cy
+            x = cx + dx * cos_r + dy * sin_r
+            y = cy - dx * sin_r + dy * cos_r
+        if not raw_xy or math.hypot(x - raw_xy[-1][0], y - raw_xy[-1][1]) > 0.05:
+            raw_xy.append((float(x), float(y)))
+
+    if len(raw_xy) < 2:
+        return SolidMesh(), SolidMesh()
+
+    seg_xy = [raw_xy[0]]
+    for i in range(len(raw_xy) - 1):
+        x0, y0 = raw_xy[i]
+        x1, y1 = raw_xy[i + 1]
+        d_seg = math.hypot(x1 - x0, y1 - y0)
+        n_sub = max(1, int(math.ceil(d_seg / 2.0)))
+        for s in range(1, n_sub + 1):
+            t = s / n_sub
+            seg_xy.append((x0 + t * (x1 - x0), y0 + t * (y1 - y0)))
+
+    model_pts = []
+    for x, y in seg_xy:
+        dx = x - cx
+        dy = y - cy
+        x_unrot = cx + dx * cos_r - dy * sin_r
+        y_unrot = cy + dx * sin_r + dy * cos_r
+        c_f = float(np.clip((x_unrot / max(1e-3, width_mm)) * (cols - 1), 0.0, cols - 1))
+        r_f = float(np.clip((y_unrot / max(1e-3, depth_mm)) * (rows - 1), 0.0, rows - 1))
+        c0, r0 = int(math.floor(c_f)), int(math.floor(r_f))
+        c1, r1 = min(c0 + 1, cols - 1), min(r0 + 1, rows - 1)
+        dc, dr = c_f - c0, r_f - r0
+        e00 = max(min_elev, float(elev_grid[r0, c0]))
+        e10 = max(min_elev, float(elev_grid[r0, c1]))
+        e01 = max(min_elev, float(elev_grid[r1, c0]))
+        e11 = max(min_elev, float(elev_grid[r1, c1]))
+        elev_interp = (1.0 - dr) * ((1.0 - dc) * e00 + dc * e10) + dr * ((1.0 - dc) * e01 + dc * e11)
+        z = base_height_mm + max(0.0, elev_interp - min_elev) * z_scale
         model_pts.append((x, y, z))
 
     # Construct swept path ribbon along waypoints
@@ -1060,12 +1508,12 @@ def generate_path_strip_and_cavity(
 
         # Caps at ends
         # Start cap (i=0)
-        faces.append([0, 2, 3])
-        faces.append([0, 3, 1])
+        faces.append([0, 1, 3])
+        faces.append([0, 3, 2])
         # End cap (i=num_w-1)
         last = 4 * (num_w - 1)
-        faces.append([last, last + 3, last + 2])
-        faces.append([last, last + 1, last + 3])
+        faces.append([last, last + 2, last + 3])
+        faces.append([last, last + 3, last + 1])
 
         return SolidMesh(verts, np.array(faces, dtype=np.int32))
 

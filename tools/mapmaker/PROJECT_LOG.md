@@ -207,6 +207,18 @@
      - Installed the `JetskiBridge` auto-fit observer & timer in `~/.local/share/FreeCAD/v1-1/Mod/JetskiBridge/InitGui.py` with `UseNavigationAnimations = False` so opening any `.stl` file automatically calls `v.fitAll()` to frame the entire 3D model immediately.
   4. **Verification**:
      - Verified automatic FreeCAD 1.1.3 framing on `tile_col0_row1.stl` and `exploded_assembly.stl`, verified Tokyo's 4 natural-border tiles + subterranean biscuit pockets, and confirmed 100% pass across `test_tiling.py` and `test_natural_border.py`.
+- **Iteration 19 (2026-10-15)**: 2-Manifold Route Trench & Inlay Strip + Landmark Pin Sockets & Printable Pin Batch (`engine/mesh.py`, `engine/tiling.py`, `tests/test_tiling.py`):
+  1. **Watertight Landmark Pin Socket Carving & Support-Free Pin Generator (`engine/mesh.py`)**:
+     - Implemented `carve_pin_sockets_into_mesh()` to replace the 1-ring of top-surface triangles around each landmark pin coordinate `(px, py)` with a 100% 2-manifold circular blind socket hole ($\varnothing 2.30\text{ mm}$ diameter, $2.20\text{ mm}$ deep, floor clamped to $\ge 0.80\text{ mm}$).
+     - Implemented `generate_landmark_pin_mesh()` to generate a 100% 2-manifold, support-free 3D marker pin ($\varnothing 2.00\text{ mm} \times 2.00\text{ mm}$ insertion peg with $0.15\text{ mm}$ radial clearance, $\varnothing 3.60\text{ mm}$ flat seating collar, stem, and $45^\circ$ chamfered $\varnothing 5.60\text{ mm}$ spherical head).
+  2. **Recessed Terrain Route Guide Trench & 3D Route Inlay Strip (`engine/mesh.py`)**:
+     - Updated `generate_terrain_mesh()` to inject dense Delaunay sample points along the route polyline and recess top-surface vertices within the toleranced trench width ($2.40\text{ mm}$) by $1.60\text{ mm}$.
+     - Fixed end-cap triangle winding in `generate_path_strip_and_cavity()` and added `2.0 mm` waypoint subdivision and unified global datum/Z-scale support so `accessories/route_inlay.stl` is 100% 2-manifold (`unmatched_edges = 0`).
+  3. **Multi-Tile Accessories Export & Assembly Previews (`engine/tiling.py`)**:
+     - Updated `TilingEngine.process_and_export_all()` to export `accessories/route_inlay.stl` and `accessories/landmark_pins.stl`, embed seated copies in `full_assembly.stl` and $+15.0\text{ mm}$ hovering copies in `exploded_assembly.stl`, and log exact pin socket coordinates per tile in `ASSEMBLY_GUIDE.md`.
+  4. **Verification (`tests/test_tiling.py`)**:
+     - Added `test_route_and_landmark_pins_stl_export_and_manifold()` verifying `0` unmatched edges across `route_inlay.stl`, `landmark_pins.stl`, and all 4 carved terrain tiles.
+
 
 
 

@@ -11,7 +11,16 @@ import numpy as np
 from typing import List, Tuple, Dict, Any, Optional
 
 from .config import MapMakerConfig, TileSlice, BoundingBox
-from .mesh import SolidMesh, generate_terrain_mesh, generate_flat_biscuit, calculate_z_scale, extrude_building_mesh, extrude_block_mesh
+from .mesh import (
+    SolidMesh,
+    generate_terrain_mesh,
+    generate_flat_biscuit,
+    generate_landmark_pin_mesh,
+    generate_path_strip_and_cavity,
+    calculate_z_scale,
+    extrude_building_mesh,
+    extrude_block_mesh,
+)
 from .geo import fetch_osm_buildings
 from .blocks import fetch_urban_blocks
 
@@ -97,6 +106,25 @@ class TilingEngine:
 
         return batch_mesh
 
+    def generate_landmark_pins_batch_mesh(self, num_pins: int) -> SolidMesh:
+        """Arranges all required 3D landmark marker pins in a printable grid array on Z=0."""
+        if num_pins <= 0:
+            return SolidMesh()
+
+        spacing = 8.0
+        cols_in_batch = math.ceil(math.sqrt(num_pins))
+        batch_mesh = SolidMesh()
+
+        for idx in range(num_pins):
+            px = idx % cols_in_batch
+            py = idx // cols_in_batch
+            pin_mesh = generate_landmark_pin_mesh(zero_base_for_printing=True)
+            pin_mesh.vertices[:, 0] += (px - (cols_in_batch - 1) / 2.0) * spacing
+            pin_mesh.vertices[:, 1] += (py - (math.ceil(num_pins / cols_in_batch) - 1) / 2.0) * spacing
+            batch_mesh.append(pin_mesh)
+
+        return batch_mesh
+
     def process_and_export_all(
         self,
         full_elev_grid: np.ndarray,
@@ -152,6 +180,7 @@ class TilingEngine:
         partitioned = self.partition_elevation_grid(full_elev_grid)
         tile_manifest = []
         total_pockets_embedded = 0
+        all_sockets_carved = []
         full_assembly_mesh = SolidMesh()
         exploded_assembly_mesh = SolidMesh()
         explode_gap_mm = 20.0
@@ -193,10 +222,18 @@ class TilingEngine:
                 global_z_scale=z_scale,
                 active_seams=active_seams,
                 dowel_config=self.config.dowel,
-                tile_clip_box_norm=tile_clip_box_norm
+                tile_clip_box_norm=tile_clip_box_norm,
+                route_waypoints_latlon=self.config.canvas.path_waypoints,
+                landmark_pins_latlon=self.config.canvas.landmarks,
+                tolerance_config=self.config.tolerances,
+                global_bbox=self.config.bbox,
+                global_width_mm=self.config.canvas.width_mm,
+                global_depth_mm=self.config.canvas.depth_mm,
+                tile_offset_xy_mm=(tile.x_min_mm, tile.y_min_mm)
             )
 
             pockets_list = getattr(tile_mesh, "pockets_created", [])
+            sockets_list = getattr(tile_mesh, "sockets_carved", [])
             total_pockets_embedded += len(pockets_list)
 
             # Extrude urban blocks within this tile slice
@@ -232,6 +269,24 @@ class TilingEngine:
                 exp_verts[:, 0] += exp_dx
                 exp_verts[:, 1] += exp_dy
                 exploded_assembly_mesh.append(SolidMesh(exp_verts, tile_mesh.faces.copy()))
+
+                # Place positive 3D landmark pins into full_assembly (seated) and exploded_assembly (+15mm Z hover)
+                for sk in sockets_list:
+                    wx = tile.x_min_mm + sk["x_mm"] - half_canvas_w
+                    wy = tile.y_min_mm + sk["y_mm"] - half_canvas_d
+                    wz = sk["z_surface_mm"]
+
+                    pin_seated = generate_landmark_pin_mesh(zero_base_for_printing=False)
+                    pin_seated.vertices[:, 0] += wx
+                    pin_seated.vertices[:, 1] += wy
+                    pin_seated.vertices[:, 2] += wz
+                    full_assembly_mesh.append(pin_seated)
+
+                    pin_exploded = generate_landmark_pin_mesh(zero_base_for_printing=False)
+                    pin_exploded.vertices[:, 0] += wx + exp_dx
+                    pin_exploded.vertices[:, 1] += wy + exp_dy
+                    pin_exploded.vertices[:, 2] += wz + 15.0
+                    exploded_assembly_mesh.append(pin_exploded)
 
                 # Place positive biscuit spline in the exploded gap for east/north seams
                 if self.config.dowel.enabled and pockets_list:
@@ -270,6 +325,14 @@ class TilingEngine:
                 tile_mesh.vertices[:, 0] -= cx
                 tile_mesh.vertices[:, 1] -= cy
 
+                for sk in sockets_list:
+                    sk_entry = dict(sk)
+                    sk_entry["tile_col"] = tile.col_idx
+                    sk_entry["tile_row"] = tile.row_idx
+                    sk_entry["tile_centered_x_mm"] = round(sk["x_mm"] - cx, 2)
+                    sk_entry["tile_centered_y_mm"] = round(sk["y_mm"] - cy, 2)
+                    all_sockets_carved.append(sk_entry)
+
             # Export tile STL
             tile_filename = f"tile_col{tile.col_idx}_row{tile.row_idx}.stl"
             tile_path = os.path.join(tiles_dir, tile_filename)
@@ -286,10 +349,62 @@ class TilingEngine:
                 "height_mm": float(dims[2]),
                 "pockets_count": len(pockets_list),
                 "pockets": pockets_list,
+                "sockets_count": len(sockets_list),
+                "sockets": sockets_list,
                 "file_size_bytes": os.path.getsize(tile_path)
             })
 
-        # Export full assembly and exploded assembly (with biscuit dowels aligned in seam gaps)
+        # Generate and export 3D Route Inlay Strip if path_waypoints has >= 2 points
+        route_inlay_path = None
+        route_inlay_size = 0
+        if self.config.canvas.path_waypoints and len(self.config.canvas.path_waypoints) >= 2 and self.config.bbox:
+            tol = self.config.tolerances
+            inlay_mesh, _ = generate_path_strip_and_cavity(
+                waypoints_lat_lon=self.config.canvas.path_waypoints,
+                bbox=self.config.bbox,
+                width_mm=self.config.canvas.width_mm,
+                depth_mm=self.config.canvas.depth_mm,
+                elev_grid=full_elev_grid,
+                z_scale=z_scale,
+                base_height_mm=self.config.canvas.base_height_mm,
+                path_width_mm=tol.path_default_width,
+                path_depth_mm=tol.path_default_depth,
+                clearance_mm=tol.path_joint_clearance,
+                tactile_offset_mm=tol.path_top_offset,
+                global_min_elev=global_min_elev,
+                rotation_deg=self.config.canvas.rotation_deg
+            )
+            if len(inlay_mesh.vertices) > 0:
+                # World-space copy for full_assembly (seated) and exploded_assembly (+15mm Z hover)
+                inlay_world_v = inlay_mesh.vertices.copy()
+                inlay_world_v[:, 0] -= half_canvas_w
+                inlay_world_v[:, 1] -= half_canvas_d
+                full_assembly_mesh.append(SolidMesh(inlay_world_v, inlay_mesh.faces.copy()))
+
+                inlay_exp_v = inlay_world_v.copy()
+                inlay_exp_v[:, 2] += 15.0
+                exploded_assembly_mesh.append(SolidMesh(inlay_exp_v, inlay_mesh.faces.copy()))
+
+                # Center route_inlay.stl at (X=0, Y=0, Z_min=0) for print bed slicing
+                r_min, r_max = inlay_mesh.bounds
+                inlay_mesh.vertices[:, 0] -= float((r_min[0] + r_max[0]) / 2.0)
+                inlay_mesh.vertices[:, 1] -= float((r_min[1] + r_max[1]) / 2.0)
+                inlay_mesh.vertices[:, 2] -= float(r_min[2])
+                route_inlay_path = os.path.join(acc_dir, "route_inlay.stl")
+                inlay_mesh.export_stl(route_inlay_path, binary=True)
+                route_inlay_size = os.path.getsize(route_inlay_path)
+
+        # Generate and export 3D Landmark Pins batch if any landmarks were added
+        num_pins_to_export = max(len(all_sockets_carved), len(self.config.canvas.landmarks or []))
+        pins_path = None
+        pins_file_size = 0
+        if num_pins_to_export > 0:
+            pins_batch_mesh = self.generate_landmark_pins_batch_mesh(num_pins_to_export)
+            pins_path = os.path.join(acc_dir, "landmark_pins.stl")
+            pins_batch_mesh.export_stl(pins_path, binary=True)
+            pins_file_size = os.path.getsize(pins_path)
+
+        # Export full assembly and exploded assembly (with biscuit dowels, route inlay, and landmark pins)
         full_asm_path = os.path.join(output_dir, "full_assembly.stl")
         exploded_asm_path = os.path.join(output_dir, "exploded_assembly.stl")
         if len(full_assembly_mesh.vertices) > 0:
@@ -318,18 +433,35 @@ class TilingEngine:
             f.write(f"**Target Canvas Size**: {self.config.canvas.width_mm:.1f} x {self.config.canvas.depth_mm:.1f} mm\n")
             f.write(f"**Tiling Grid**: {self.cols} Columns x {self.rows} Rows ({len(tile_manifest)} total tiles)\n")
             f.write(f"**Print Bed Allocation**: ~{tile_manifest[0]['width_mm']:.1f} x {tile_manifest[0]['depth_mm']:.1f} mm per tile (Fits within {self.config.printer.name})\n")
-            f.write(f"**Total Biscuits Needed**: {total_biscuits} ({biscuit_info['pockets_per_edge']} per internal seam)\n\n")
-            f.write("## Tile Layout Matrix\n\n")
+            f.write(f"**Total Biscuits Needed**: {total_biscuits} ({biscuit_info['pockets_per_edge']} per internal seam)\n")
+            if route_inlay_path:
+                f.write(f"**Route Inlay Strip**: `accessories/{os.path.basename(route_inlay_path)}` (Press-fits into the 2.40 mm recessed terrain trench)\n")
+            if pins_path:
+                f.write(f"**Landmark Pins**: {num_pins_to_export} pins in `accessories/{os.path.basename(pins_path)}` (Plug into pre-bored Ø2.30 mm terrain sockets)\n")
+            f.write("\n## Tile Layout Matrix\n\n")
             f.write("```\n")
             for r in reversed(range(self.rows)):
                 row_str = " | ".join([f"[Col {c}, Row {r}]" for c in range(self.cols)])
                 f.write(f"North  {row_str}\n")
             f.write("South\n```\n\n")
+            if all_sockets_carved:
+                f.write("## Landmark Pin Socket Locations\n\n")
+                for idx, sk in enumerate(all_sockets_carved, 1):
+                    f.write(
+                        f"- **Pin {idx} ({sk['name']})**: Tile `[Col {sk['tile_col']}, Row {sk['tile_row']}]` "
+                        f"at `(X={sk['tile_centered_x_mm']} mm, Y={sk['tile_centered_y_mm']} mm, Z={sk['z_surface_mm']} mm)` "
+                        f"— Ø{sk['diameter_mm']} mm blind socket\n"
+                    )
+                f.write("\n")
             f.write("## Slicing & Printing Notes (Bambu Lab A1)\n")
             f.write("1. **Orientation**: Print all tiles flat on the bed (Z=0 on the build plate). Each tile is centered at (0, 0) for instant framing in FreeCAD and Bambu Studio.\n")
             f.write("2. **Infill**: 10-15% Gyroid infill is recommended for solid rigidity with low filament weight.\n")
             f.write(f"3. **Biscuits**: Print `{os.path.basename(biscuit_path)}` in PLA/PETG. Slide them into the mating pockets with a dab of CA glue.\n")
-            f.write("4. **Assembly Previews**: Open `full_assembly.stl` or `exploded_assembly.stl` in FreeCAD to view all tiles and subterranean biscuit splines together.\n")
+            if route_inlay_path:
+                f.write("4. **Route Placement**: Print `accessories/route_inlay.stl` in a contrasting accent color and press it directly into the matching recessed channel on the terrain.\n")
+            if pins_path:
+                f.write("5. **Landmark Pin Placement**: Print `accessories/landmark_pins.stl` in an accent color and push the Ø2.00 mm pegs into the pre-bored Ø2.30 mm socket holes on the terrain.\n")
+            f.write("6. **Assembly Previews**: Open `full_assembly.stl` or `exploded_assembly.stl` in FreeCAD to view all tiles, biscuit splines, route inlays, and landmark pins together.\n")
 
         return {
             "num_tiles": len(tile_manifest),
@@ -342,6 +474,16 @@ class TilingEngine:
                 "total_count": total_biscuits,
                 "path": biscuit_path,
                 "file_size_bytes": biscuit_file_size
+            },
+            "route_inlay": {
+                "path": route_inlay_path,
+                "file_size_bytes": route_inlay_size
+            },
+            "landmark_pins": {
+                "total_count": num_pins_to_export,
+                "sockets_carved": all_sockets_carved,
+                "path": pins_path,
+                "file_size_bytes": pins_file_size
             },
             "assembly_guide": guide_path
         }
