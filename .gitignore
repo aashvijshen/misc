@@ -4,6 +4,7 @@
 # Allow projects hierarchy
 !projects/
 !projects/**/
+!projects/musicBox/**
 
 # Allow tools hierarchy
 !tools/
@@ -11,7 +12,11 @@
 !tools/habitree/**
 !tools/mapmaker/**
 
-# Never track output generated files in tools/habitree and tools/mapmaker
+# Never track local virtualenvs, caches, or generated output files
+projects/musicBox/.venv/
+projects/musicBox/.venv/**
+projects/musicBox/.pytest_cache/
+projects/musicBox/.pytest_cache/**
 tools/habitree/output/
 tools/habitree/output/**
 tools/mapmaker/exports/
