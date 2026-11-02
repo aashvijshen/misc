@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HabiTree - Procedural 3D Habit Tracker Studio</title>
+  <!-- Three.js + Loaders via CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+  <style>
+    :root {
+      --bg-dark: #121519;
+      --bg-panel: rgba(26, 31, 38, 0.90);
+      --bg-card: rgba(38, 45, 56, 0.65);
+      --accent: #10B981;
+      --accent-hover: #059669;
+      --accent-glow: rgba(16, 185, 129, 0.25);
+      --border: rgba(255, 255, 255, 0.08);
+      --text-main: #F3F4F6;
+      --text-muted: #9CA3AF;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg-dark); color: var(--text-main); overflow: hidden; height: 100vh; display: flex; }
+    
+    /* Left Sidebar */
+    #sidebar {
+      width: 360px;
+      height: 100vh;
+      background: var(--bg-panel);
+      backdrop-filter: blur(16px);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      z-index: 10;
+      overflow-y: auto;
+    }
+    .header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; }
+    .badge { background: var(--accent-glow); color: var(--accent); padding: 2px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 600; }
+    
+    .panel-content { padding: 20px; display: flex; flex-direction: column; gap: 20px; flex: 1; }
+    .control-group { display: flex; flex-direction: column; gap: 8px; }
+    .control-group label { font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+    
+    /* Style selector cards */
+    .style-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .style-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: all 0.2s ease;
+    }
+    .style-card:hover { border-color: rgba(255, 255, 255, 0.25); background: rgba(50, 60, 75, 0.6); }
+    .style-card.active { border-color: var(--accent); background: var(--accent-glow); }
+    .style-card .icon { font-size: 1.3rem; }
+    .style-card .title { font-size: 0.85rem; font-weight: 600; color: var(--text-main); }
+    .style-card .desc { font-size: 0.7rem; color: var(--text-muted); }
+
+    /* Piece count presets */
+    .chips-row { display: flex; gap: 6px; }
+    .chip {
+      flex: 1;
+      padding: 6px 4px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s ease;
+    }
+    .chip:hover, .chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* Slider styling */
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      outline: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+    }
+
+    /* Seed row */
+    .seed-row { display: flex; gap: 8px; }
+    .seed-input {
+      flex: 1;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: var(--text-main);
+      font-size: 0.85rem;
+      font-weight: 600;
+      outline: none;
+    }
+    .btn-dice {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.15s ease;
+    }
+    .btn-dice:hover { background: rgba(255, 255, 255, 0.1); }
+
+    /* Main CTA button */
+    .btn-generate {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px var(--accent-glow);
+      transition: all 0.2s ease;
+    }
+    .btn-generate:hover { background: var(--accent-hover); transform: translateY(-1px); }
+    .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* Stats box */
+    .stats-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      font-size: 0.75rem;
+    }
+    .stat-item { display: flex; flex-direction: column; }
+    .stat-label { color: var(--text-muted); font-size: 0.68rem; }
+    .stat-value { font-weight: 700; color: var(--text-main); font-size: 0.9rem; margin-top: 2px; }
+
+    /* Main 3D Viewport */
+    #viewport-container { flex: 1; position: relative; height: 100vh; }
+    #canvas3d { width: 100%; height: 100%; display: block; }
+
+    /* Bottom Inspector Bar */
+    #bottom-bar {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-panel);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      z-index: 10;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .inspector-item { display: flex; align-items: center; gap: 12px; font-size: 0.82rem; font-weight: 600; }
+    .inspector-item span { color: var(--text-muted); white-space: nowrap; }
+
+    /* Right Export Menu */
+    #export-panel {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      background: var(--bg-panel);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 10;
+      min-width: 220px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .export-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-main);
+      padding: 8px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .export-btn:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.3); }
+
+    /* Loading overlay */
+    #loader {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(18, 21, 25, 0.75);
+      backdrop-filter: blur(4px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+    #loader.active { opacity: 1; pointer-events: all; }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <!-- Left Sidebar Controls -->
+  <div id="sidebar">
+    <div class="header">
+      <h1>🌳 HabiTree <span class="badge">3D Studio</span></h1>
+    </div>
+
+    <div class="panel-content">
+      <!-- Style Selection -->
+      <div class="control-group">
+        <label>Tree Aesthetic Style</label>
+        <div class="style-grid">
+          <div class="style-card active" data-style="zen_bonsai">
+            <span class="icon">🪴</span>
+            <span class="title">Zen Bonsai</span>
+            <span class="desc">S-curved trunk, soft cloud-puffs</span>
+          </div>
+          <div class="style-card" data-style="sakura">
+            <span class="icon">🌸</span>
+            <span class="title">Sakura Bloom</span>
+            <span class="desc">Mahogany limbs, 5-petal blossoms</span>
+          </div>
+          <div class="style-card" data-style="ghibli_fruit">
+            <span class="icon">🍎</span>
+            <span class="title">Ghibli Tree</span>
+            <span class="desc">Chubby trunk, slot-in fruit</span>
+          </div>
+          <div class="style-card" data-style="autumn_maple">
+            <span class="icon">🍁</span>
+            <span class="title">Autumn Maple</span>
+            <span class="desc">Twin boughs, star foliage</span>
+          </div>
+          <div class="style-card" data-style="geometric" style="grid-column: span 2;">
+            <span class="icon">💎</span>
+            <span class="title">Geometric Low-Poly</span>
+            <span class="desc">Modern faceted crystal tiers</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Piece Count -->
+      <div class="control-group">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <label>Habit Streak Goal</label>
+          <span id="pieces-val" style="font-size: 0.85rem; font-weight: 700; color: var(--accent);">30 Days</span>
+        </div>
+        <div class="chips-row">
+          <div class="chip" data-count="14">14d Sprint</div>
+          <div class="chip active" data-count="30">30d Month</div>
+          <div class="chip" data-count="50">50d Milestone</div>
+          <div class="chip" data-count="100">100d Master</div>
+        </div>
+        <input type="range" id="pieces-slider" min="14" max="100" value="30" step="1">
+      </div>
+
+      <!-- Organic Randomness / Seed -->
+      <div class="control-group">
+        <label>Organic Seed (🎲 Variation)</label>
+        <div class="seed-row">
+          <input type="number" id="seed-input" class="seed-input" value="42">
+          <button id="btn-roll" class="btn-dice" title="Roll New Variation">🎲 Roll</button>
+        </div>
+      </div>
+
+      <!-- Generate Button -->
+      <button id="btn-generate" class="btn-generate">
+        <span>🚀 Generate 3D Model</span>
+      </button>
+
+      <!-- Live Tree Stats -->
+      <div class="control-group">
+        <label>Sculpture Specs</label>
+        <div class="stats-card">
+          <div class="stat-item">
+            <span class="stat-label">Total Pieces</span>
+            <span class="stat-value" id="stat-pieces">30 + 1 Base</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Estimated Mass</span>
+            <span class="stat-value" id="stat-mass">~52.0 g</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Joint Tolerance</span>
+            <span class="stat-value" style="color: var(--accent);">0.15 mm</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Bed Overhangs</span>
+            <span class="stat-value" style="color: var(--accent);">&le; 45&deg; (0 Supports)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Center 3D Viewport -->
+  <div id="viewport-container">
+    <canvas id="canvas3d"></canvas>
+
+    <!-- Bottom Inspector Controls -->
+    <div id="bottom-bar">
+      <div class="inspector-item">
+        <span>🌱 Growth Day:</span>
+        <input type="range" id="growth-slider" min="1" max="30" value="30" style="width: 150px;">
+        <span id="growth-val" style="color: var(--accent); width: 45px; text-align: right;">30/30</span>
+      </div>
+
+      <div class="inspector-item" style="border-left: 1px solid var(--border); padding-left: 20px;">
+        <span>🔍 Exploded View:</span>
+        <input type="range" id="explode-slider" min="0" max="1" step="0.01" value="0" style="width: 110px;">
+      </div>
+    </div>
+
+    <!-- Right Export Menu -->
+    <div id="export-panel">
+      <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 2px;">
+        Export Production
+      </div>
+      <a id="btn-dl-zip" href="/api/download/zip" class="export-btn">
+        <span>📦 All Pieces (.ZIP)</span>
+      </a>
+      <a id="btn-dl-step" href="/api/download/step" class="export-btn">
+        <span>📐 Master CAD (.STEP)</span>
+      </a>
+      <a id="btn-dl-plate1" href="/api/model/plate/plate1_base_and_trunk.stl" class="export-btn">
+        <span>🖨️ Plate 1 (Base/Trunk)</span>
+      </a>
+      <a id="btn-dl-plate2" href="/api/model/plate/plate2_branches.stl" class="export-btn">
+        <span>🖨️ Plate 2 (Branches)</span>
+      </a>
+      <a id="btn-dl-plate3" href="/api/model/plate/plate3_canopy.stl" class="export-btn">
+        <span>🖨️ Plate 3 (Foliage)</span>
+      </a>
+    </div>
+
+    <!-- Loading Screen -->
+    <div id="loader">
+      <div class="spinner"></div>
+      <div style="font-size: 0.9rem; font-weight: 600;" id="loader-text">Proceduralizing CAD Geometry...</div>
+    </div>
+  </div>
+
+  <script>
+    // -------------------------------------------------------------------------
+    // 1. THREE.JS 3D SCENE SETUP
+    // -------------------------------------------------------------------------
+    const container = document.getElementById('viewport-container');
+    const canvas = document.getElementById('canvas3d');
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x121519);
+
+    const camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 1, 1000);
+    camera.position.set(0, -185, 95);
+
+    const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.target.set(0, 0, 48);
+    // Auto-rotate strictly disabled per user preference
+    controls.autoRotate = false;
+
+    // Studio Lighting
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.70);
+    scene.add(ambientLight);
+
+    const keyLight = new THREE.DirectionalLight(0xfff8ee, 1.8);
+    keyLight.position.set(90, -130, 160);
+    keyLight.castShadow = true;
+    keyLight.shadow.mapSize.width = 1024;
+    keyLight.shadow.mapSize.height = 1024;
+    scene.add(keyLight);
+
+    const fillLight = new THREE.DirectionalLight(0x90caf9, 0.65);
+    fillLight.position.set(-110, -70, 90);
+    scene.add(fillLight);
+
+    const rimLight = new THREE.DirectionalLight(0xffffff, 0.4);
+    rimLight.position.set(0, 120, 60);
+    scene.add(rimLight);
+
+    // Soft Table Plane with shadow
+    const floorGeo = new THREE.PlaneGeometry(600, 600);
+    const floorMat = new THREE.ShadowMaterial({ opacity: 0.35 });
+    const floorMesh = new THREE.Mesh(floorGeo, floorMat);
+    floorMesh.receiveShadow = true;
+    scene.add(floorMesh);
+
+    // Grid helper
+    const grid = new THREE.GridHelper(260, 26, 0x262D38, 0x1A1F26);
+    grid.rotation.x = Math.PI / 2;
+    scene.add(grid);
+
+    // Tree Group
+    const treeGroup = new THREE.Group();
+    scene.add(treeGroup);
+
+    // Resize handler
+    window.addEventListener('resize', () => {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // -------------------------------------------------------------------------
+    // 2. MULTI-PART SCENE BUNDLE LOADER
+    // -------------------------------------------------------------------------
+    const stlLoader = new THREE.STLLoader();
+    let loadedParts = [];
+    let baseMesh = null;
+
+    function b64ToArrayBuffer(b64) {
+      const binary_string = window.atob(b64);
+      const len = binary_string.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binary_string.charCodeAt(i);
+      }
+      return bytes.buffer;
+    }
+
+    async function loadTreeScene() {
+      // Clear old meshes
+      while (treeGroup.children.length > 0) {
+        treeGroup.remove(treeGroup.children[0]);
+      }
+      loadedParts = [];
+      baseMesh = null;
+
+      try {
+        const res = await fetch('/api/model/scene_bundle');
+        if (!res.ok) throw new Error('Scene bundle not found');
+        const bundle = await res.json();
+
+        // Update stats
+        document.getElementById('stat-pieces').textContent = `${bundle.piece_count} + 1 Base`;
+        document.getElementById('stat-mass').textContent = `~${bundle.estimated_mass_grams} g`;
+
+        // 1. Load Base Planter
+        if (bundle.base && bundle.base.data) {
+          const baseBuf = b64ToArrayBuffer(bundle.base.data);
+          const baseGeom = stlLoader.parse(baseBuf);
+          baseGeom.computeVertexNormals();
+          const baseMat = new THREE.MeshStandardMaterial({
+            color: new THREE.Color(bundle.base.color || '#2A2E33'),
+            roughness: 0.55,
+            metalness: 0.05
+          });
+          baseMesh = new THREE.Mesh(baseGeom, baseMat);
+          baseMesh.castShadow = true;
+          baseMesh.receiveShadow = true;
+          treeGroup.add(baseMesh);
+        }
+
+        // 2. Load Each Individual Piece Mesh
+        bundle.parts.forEach(part => {
+          const partBuf = b64ToArrayBuffer(part.data);
+          const geom = stlLoader.parse(partBuf);
+          geom.computeVertexNormals();
+          geom.computeBoundingBox();
+
+          const center = new THREE.Vector3();
+          geom.boundingBox.getCenter(center);
+
+          const mat = new THREE.MeshStandardMaterial({
+            color: new THREE.Color(part.color),
+            roughness: 0.45,
+            metalness: 0.05
+          });
+          const mesh = new THREE.Mesh(geom, mat);
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+          treeGroup.add(mesh);
+
+          loadedParts.push({
+            day: part.day,
+            zone: part.zone,
+            name: part.name,
+            mesh: mesh,
+            center: center
+          });
+        });
+
+        // Sort by day number
+        loadedParts.sort((a, b) => a.day - b.day);
+
+        // Reset sliders
+        const gSlider = document.getElementById('growth-slider');
+        gSlider.min = 1;
+        gSlider.max = loadedParts.length;
+        gSlider.value = loadedParts.length;
+        document.getElementById('growth-val').textContent = `${loadedParts.length}/${loadedParts.length}`;
+
+        const expSlider = document.getElementById('explode-slider');
+        expSlider.value = 0;
+
+        applyGrowthFilter(loadedParts.length);
+        applyExplodedOffset(0);
+
+      } catch (err) {
+        console.error("Failed to load scene bundle:", err);
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // 3. GROWTH TIMELINE & EXPLODED VIEW HANDLERS
+    // -------------------------------------------------------------------------
+    function applyGrowthFilter(maxDay) {
+      const valElem = document.getElementById('growth-val');
+      if (valElem) valElem.textContent = `${maxDay}/${loadedParts.length}`;
+      loadedParts.forEach(p => {
+        p.mesh.visible = (p.day <= maxDay);
+      });
+    }
+
+    function applyExplodedOffset(factor) {
+      loadedParts.forEach(p => {
+        const len = Math.sqrt(p.center.x * p.center.x + p.center.y * p.center.y);
+        let normX = len > 0.05 ? (p.center.x / len) : 0;
+        let normY = len > 0.05 ? (p.center.y / len) : 0;
+
+        let radFactor = 28.0;
+        let vertFactor = 16.0;
+
+        if (p.zone === 'trunk') {
+          radFactor = 22.0;
+          vertFactor = Math.max(8.0, p.center.z * 0.20);
+        } else if (p.zone === 'branch') {
+          radFactor = 45.0;
+          vertFactor = Math.max(18.0, p.center.z * 0.40);
+        } else { // canopy
+          radFactor = 65.0;
+          vertFactor = Math.max(32.0, p.center.z * 0.65);
+        }
+
+        p.mesh.position.x = normX * radFactor * factor;
+        p.mesh.position.y = normY * radFactor * factor;
+        p.mesh.position.z = vertFactor * factor;
+      });
+    }
+
+    // Growth Slider listener (both input and change)
+    const gSliderElem = document.getElementById('growth-slider');
+    const onGrowthChange = (e) => applyGrowthFilter(parseInt(e.target.value));
+    gSliderElem.addEventListener('input', onGrowthChange);
+    gSliderElem.addEventListener('change', onGrowthChange);
+
+    // Exploded View Slider listener (both input and change)
+    const expSliderElem = document.getElementById('explode-slider');
+    const onExplodeChange = (e) => applyExplodedOffset(parseFloat(e.target.value));
+    expSliderElem.addEventListener('input', onExplodeChange);
+    expSliderElem.addEventListener('change', onExplodeChange);
+
+    // -------------------------------------------------------------------------
+    // 4. UI CONTROLS & GENERATE BINDINGS
+    // -------------------------------------------------------------------------
+    let selectedStyle = "zen_bonsai";
+    let selectedPieces = 30;
+
+    // Style card selection
+    document.querySelectorAll('.style-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.style-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        selectedStyle = card.getAttribute('data-style');
+      });
+    });
+
+    // Piece count presets
+    document.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        const count = parseInt(chip.getAttribute('data-count'));
+        selectedPieces = count;
+        document.getElementById('pieces-slider').value = count;
+        document.getElementById('pieces-val').textContent = `${count} Days`;
+      });
+    });
+
+    // Pieces slider
+    const pSlider = document.getElementById('pieces-slider');
+    pSlider.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value);
+      selectedPieces = val;
+      document.getElementById('pieces-val').textContent = `${val} Days`;
+      document.querySelectorAll('.chip').forEach(c => {
+        c.classList.toggle('active', parseInt(c.getAttribute('data-count')) === val);
+      });
+    });
+
+    // Roll Dice button
+    document.getElementById('btn-roll').addEventListener('click', () => {
+      const newSeed = Math.floor(Math.random() * 9999) + 1;
+      document.getElementById('seed-input').value = newSeed;
+    });
+
+    // Generate CTA button
+    const btnGen = document.getElementById('btn-generate');
+    const loader = document.getElementById('loader');
+
+    btnGen.addEventListener('click', async () => {
+      btnGen.disabled = true;
+      loader.classList.add('active');
+      const seed = parseInt(document.getElementById('seed-input').value) || 42;
+
+      try {
+        const res = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            style: selectedStyle,
+            pieces: selectedPieces,
+            seed: seed
+          })
+        });
+
+        const data = await res.json();
+        if (data.status === 'success') {
+          await loadTreeScene();
+        } else {
+          alert('Generation failed: ' + data.message);
+        }
+      } catch (err) {
+        alert('Server connection error: ' + err);
+      } finally {
+        btnGen.disabled = false;
+        loader.classList.remove('active');
+      }
+    });
+
+    // Initial load
+    loadTreeScene();
+  </script>
+</body>
+</html>
