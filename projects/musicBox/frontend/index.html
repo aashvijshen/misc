@@ -316,9 +316,16 @@
           <!-- PANE A: DIE-PUNCH OPERATOR TERMINAL (EXISTING KIKKERLAND PAPER) -->
           <div id="bayPanelPunchGuide" class="output-pane-flex">
             <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:6px; margin-bottom:8px; font-family:var(--font-mono); font-size:0.71rem;">
+              <label style="display:inline-flex; align-items:center; gap:5px; color:var(--text-mid);" title="Step every physical grid line including blank spaces, or jump note-to-note with a blank-space count">
+                STEP:
+                <select id="stepModeSelect" class="hw-select" style="padding:3px 6px;">
+                  <option value="all_lines" selected>ALL LINES + SPACES</option>
+                  <option value="notes_only">NOTES + GAP COUNT</option>
+                </select>
+              </label>
               <label style="display:inline-flex; align-items:center; gap:5px; color:var(--text-mid);">
                 USABLE MM:
-                <input type="number" id="existingUsableMmInput" class="hw-input" style="width:64px; padding:3px 5px;" min="100" max="1000" value="412" />
+                <input type="number" id="existingUsableMmInput" class="hw-input" style="width:60px; padding:3px 5px;" min="100" max="1000" value="412" />
               </label>
               <label style="display:inline-flex; align-items:center; gap:5px; color:var(--text-mid);">
                 GRID:
@@ -334,12 +341,13 @@
               </div>
             </div>
 
-            <div class="operator-hud">
+            <div class="operator-hud" id="operatorHudBox">
               <div class="hud-top-row">
                 <div class="hud-big-coord" id="hudActiveCoord">SHEET 1 // LINE 1</div>
                 <span id="punchProgressText" style="font-family:var(--font-mono); font-size:0.72rem; color:var(--vfd-amber);">0 / 0 STAMPED</span>
               </div>
 
+              <div class="hud-space-banner" id="hudSpaceBanner"></div>
               <div class="hud-pin-matrix" id="hudPinMatrix"></div>
               <div id="hudLandmarkReadout" style="font-family:var(--font-mono); font-size:0.73rem; color:var(--text-hi); margin-bottom:8px;"></div>
 

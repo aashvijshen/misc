@@ -35,6 +35,7 @@
 
     checkedRows: new Set(),
     focusedRowIdx: 0,
+    stepMode: 'all_lines', // 'all_lines' | 'notes_only'
     outputMode: 'punch', // 'punch' | 'a4'
     a4PageIndex: 0,
 
@@ -138,12 +139,15 @@
     bayPanelPunchGuide: document.getElementById('bayPanelPunchGuide'),
     bayPanelPrintA4: document.getElementById('bayPanelPrintA4'),
 
+    stepModeSelect: document.getElementById('stepModeSelect'),
     existingUsableMmInput: document.getElementById('existingUsableMmInput'),
     existingGridSpacingSelect: document.getElementById('existingGridSpacingSelect'),
     resetCheckedRowsBtn: document.getElementById('resetCheckedRowsBtn'),
     printChecklistBtn: document.getElementById('printChecklistBtn'),
+    operatorHudBox: document.getElementById('operatorHudBox'),
     hudActiveCoord: document.getElementById('hudActiveCoord'),
     punchProgressText: document.getElementById('punchProgressText'),
+    hudSpaceBanner: document.getElementById('hudSpaceBanner'),
     hudPinMatrix: document.getElementById('hudPinMatrix'),
     hudLandmarkReadout: document.getElementById('hudLandmarkReadout'),
     prevPunchRowBtn: document.getElementById('prevPunchRowBtn'),
@@ -1024,6 +1028,36 @@
       ctx.fillText(PRINTED_LABELS[c], cx, 21);
     }
 
+    if (!state.isPlaying && !state.isHandCranking && state.outputMode === 'punch') {
+      const opRow = getActiveOperatorRow();
+      if (opRow) {
+        const py = geom.topHeader + opRow.global_y_mm * geom.pxPerMm;
+        const bandHalf = Math.max(4, Math.min(9, gridStepMm * geom.pxPerMm * 0.48));
+        ctx.save();
+        if (opRow.is_space) {
+          ctx.fillStyle = 'rgba(0, 175, 148, 0.16)';
+          ctx.fillRect(geom.leftMargin - 6, py - bandHalf, w - 2 * geom.leftMargin + 12, bandHalf * 2);
+          ctx.setLineDash([4, 3]);
+          ctx.strokeStyle = '#008c72';
+          ctx.lineWidth = 1.4;
+          ctx.beginPath();
+          ctx.moveTo(geom.leftMargin - 6, py);
+          ctx.lineTo(w - geom.leftMargin + 6, py);
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = 'rgba(255, 85, 0, 0.16)';
+          ctx.fillRect(geom.leftMargin - 6, py - bandHalf, w - 2 * geom.leftMargin + 12, bandHalf * 2);
+          ctx.strokeStyle = '#d94800';
+          ctx.lineWidth = 1.6;
+          ctx.beginPath();
+          ctx.moveTo(geom.leftMargin - 6, py);
+          ctx.lineTo(w - geom.leftMargin + 6, py);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+    }
+
     punches.forEach((p) => {
       const cx = geom.leftMargin + p.col * geom.colSpacing;
       const cy = geom.topHeader + p.y_mm * geom.pxPerMm;
@@ -1087,29 +1121,90 @@
   // Right Bay: Die-Punch Operator HUD & Row Log + 1:1 A4 Blueprint Plotter
   // --------------------------------------------------------------------------
 
-  function renderOperatorPunchGuide() {
-    const rows = (state.arrangement && state.arrangement.punch_rows) || [];
+  function getOperatorRows() {
+    if (!state.arrangement) return [];
+    if (state.stepMode === 'all_lines') {
+      return state.arrangement.strip_lines || state.arrangement.punch_rows || [];
+    }
+    return state.arrangement.punch_rows || [];
+  }
+
+  function getActiveOperatorRow() {
+    const rows = getOperatorRows();
+    if (!rows.length) return null;
+    if (state.focusedRowIdx >= rows.length) {
+      state.focusedRowIdx = Math.max(0, rows.length - 1);
+    }
+    return rows[state.focusedRowIdx] || null;
+  }
+
+  function buildSpaceBlocksHtml(total, mode = 'gap', activeOneBased = 0) {
+    if (!total || total <= 0) return '';
+    const maxShown = Math.min(12, total);
+    let slots = '';
+    for (let i = 1; i <= maxShown; i++) {
+      let cls = 'space-slot';
+      if (mode === 'step') {
+        if (i < activeOneBased) cls += ' passed';
+        else if (i === activeOneBased) cls += ' current';
+      } else if (mode === 'passed_all') {
+        cls += ' passed';
+      } else if (mode === 'gap') {
+        cls += ' gap-warn';
+      }
+      slots += `<span class="${cls}"></span>`;
+    }
+    const extra = total > maxShown
+      ? `<span style="font-size:0.66rem; opacity:0.85;">+${total - maxShown}</span>`
+      : '';
+    return `<span class="space-meter-blocks" aria-hidden="true">${slots}</span>${extra}`;
+  }
+
+  function syncStripScrollToOperatorRow() {
+    if (state.isPlaying || state.isHandCranking || !el.stripViewport) return;
+    const opRow = getActiveOperatorRow();
+    if (!opRow) return;
+    const geom = getStripGeom();
+    const rowPx = geom.topHeader + opRow.global_y_mm * geom.pxPerMm;
+    const vp = el.stripViewport;
+    if (rowPx > vp.scrollTop + vp.clientHeight - 70 || rowPx < vp.scrollTop + 24) {
+      vp.scrollTop = Math.max(0, rowPx - Math.round(vp.clientHeight * 0.35));
+    }
+  }
+
+  function renderOperatorPunchGuide(opts = {}) {
+    const { scrollLog = false, syncStrip = false } = opts;
+    const rows = getOperatorRows();
+    const punchRows = (state.arrangement && state.arrangement.punch_rows) || [];
     el.punchChecklistContainer.innerHTML = '';
 
     if (state.focusedRowIdx >= rows.length) {
       state.focusedRowIdx = Math.max(0, rows.length - 1);
     }
 
-    const doneCount = rows.filter((r) => state.checkedRows.has(r.global_row)).length;
-    el.punchProgressText.textContent = `${doneCount} / ${rows.length} STAMPED`;
+    const doneNoteCount = punchRows.filter((r) => state.checkedRows.has(r.global_row)).length;
+    if (state.stepMode === 'all_lines') {
+      const doneLineCount = rows.filter((r) => state.checkedRows.has(r.global_row)).length;
+      el.punchProgressText.textContent =
+        `${doneLineCount}/${rows.length} LINES · ${doneNoteCount}/${punchRows.length} NOTES`;
+    } else {
+      el.punchProgressText.textContent = `${doneNoteCount} / ${punchRows.length} STAMPED`;
+    }
 
     el.hudPinMatrix.innerHTML = '';
     const activeRow = rows[state.focusedRowIdx];
     if (!activeRow) {
+      el.operatorHudBox.classList.remove('is-space-row');
+      el.hudPinMatrix.classList.remove('space-blank');
       el.hudActiveCoord.textContent = 'NO PUNCH ROWS IN GATE';
+      el.hudSpaceBanner.className = 'hud-space-banner';
+      el.hudSpaceBanner.textContent = 'SELECT A SONG SLICE WITH NOTES';
       el.hudLandmarkReadout.textContent = 'Select a song slice with notes.';
+      drawStripCanvas();
       return;
     }
 
-    el.hudActiveCoord.textContent =
-      `SHEET ${activeRow.sheet_number}/4 // LINE ${activeRow.sheet_row} (${activeRow.sheet_y_mm.toFixed(1)} MM)`;
-
-    const activeCols = new Set(activeRow.punches.map((p) => p.col));
+    const activeCols = new Set((activeRow.punches || []).map((p) => p.col));
     for (let c = 0; c < 15; c++) {
       const cell = document.createElement('div');
       cell.className =
@@ -1120,11 +1215,76 @@
       el.hudPinMatrix.appendChild(cell);
     }
 
-    el.hudLandmarkReadout.innerHTML = activeRow.punches
-      .map((p) => `<span style="color:var(--sig-yellow); font-weight:700;">[${p.label} · COL ${p.col_num}]</span> ${p.landmark_hint}`)
-      .join(' &nbsp;·&nbsp; ');
+    if (activeRow.is_space) {
+      el.operatorHudBox.classList.add('is-space-row');
+      el.hudPinMatrix.classList.add('space-blank');
+      el.hudActiveCoord.textContent =
+        `SHEET ${activeRow.sheet_number}/4 // SPACE ${activeRow.space_index} OF ${activeRow.space_run_total}`;
+
+      const remSpaces = activeRow.space_run_total - activeRow.space_index;
+      const nextPill = remSpaces === 0
+        ? '<span class="hud-next-pill">NEXT LINE: PUNCH!</span>'
+        : `<span style="font-size:0.68rem; opacity:0.88;">${remSpaces} MORE SPACE${remSpaces > 1 ? 'S' : ''}</span>`;
+
+      el.hudSpaceBanner.className = 'hud-space-banner space-banner-blank';
+      el.hudSpaceBanner.innerHTML =
+        `<span>— EMPTY SPACE · SKIP LINE (${activeRow.space_index} OF ${activeRow.space_run_total}) —</span>` +
+        `<span class="space-meter-wrap">${buildSpaceBlocksHtml(activeRow.space_run_total, 'step', activeRow.space_index)} ${nextPill}</span>`;
+
+      let upcomingPunchRow = null;
+      for (let k = state.focusedRowIdx + 1; k < rows.length; k++) {
+        if (!rows[k].is_space && rows[k].sheet_number === activeRow.sheet_number) {
+          upcomingPunchRow = rows[k];
+          break;
+        }
+      }
+      const upcomingTxt = upcomingPunchRow
+        ? ` &nbsp;·&nbsp; Upcoming punch: <strong style="color:var(--sig-yellow);">${upcomingPunchRow.punches.map((p) => `${p.label}(#${p.col_num})`).join(', ')}</strong>`
+        : '';
+      el.hudLandmarkReadout.innerHTML =
+        `<span style="color:var(--vfd-cyan); font-weight:700;">[DO NOT PUNCH]</span> Leave this horizontal grid line blank — advance 1 line.${upcomingTxt}`;
+
+      el.stampAndAdvanceBtn.className = 'hw-btn hw-btn-cyan';
+      el.stampAndAdvanceBtn.innerHTML = '⇥ SKIP SPACE &amp; NEXT [SPACEBAR]';
+    } else {
+      el.operatorHudBox.classList.remove('is-space-row');
+      el.hudPinMatrix.classList.remove('space-blank');
+      el.hudActiveCoord.textContent =
+        `SHEET ${activeRow.sheet_number}/4 // PUNCH LINE (LN ${activeRow.sheet_row} · ${activeRow.sheet_y_mm.toFixed(0)}MM)`;
+
+      const spBefore = activeRow.spaces_before || 0;
+      if (state.stepMode === 'notes_only' && spBefore > 0) {
+        el.hudSpaceBanner.className = 'hud-space-banner space-banner-gap-alert';
+        el.hudSpaceBanner.innerHTML =
+          `<span>↓ LEAVE ${spBefore} EMPTY SPACE${spBefore > 1 ? 'S' : ''} BLANK, THEN PUNCH:</span>` +
+          `<span class="space-meter-wrap">${buildSpaceBlocksHtml(spBefore, 'gap')}</span>`;
+      } else {
+        el.hudSpaceBanner.className = 'hud-space-banner';
+        let rightCtx = '';
+        if (activeRow.sheet_row === 1) {
+          rightCtx = '<span>FIRST LINE OF SHEET</span>';
+        } else if (spBefore === 0) {
+          rightCtx = '<span>CONSECUTIVE LINE · 0 SPACES</span>';
+        } else {
+          rightCtx = `<span>AFTER ${spBefore} SPACE${spBefore > 1 ? 'S' : ''}</span> ${buildSpaceBlocksHtml(spBefore, 'passed_all')}`;
+        }
+        const holeCount = activeRow.punches.length;
+        el.hudSpaceBanner.innerHTML =
+          `<span>╬ PUNCH THIS LINE (${holeCount} HOLE${holeCount > 1 ? 'S' : ''})</span>` +
+          `<span class="space-meter-wrap" style="font-size:0.68rem; color:var(--text-hi);">${rightCtx}</span>`;
+      }
+
+      el.hudLandmarkReadout.innerHTML = activeRow.punches
+        .map((p) => `<span style="color:var(--sig-yellow); font-weight:700;">[${p.label} · COL ${p.col_num}]</span> ${p.landmark_hint}`)
+        .join(' &nbsp;·&nbsp; ');
+
+      el.stampAndAdvanceBtn.className = 'hw-btn hw-btn-orange';
+      el.stampAndAdvanceBtn.innerHTML = '╬ STAMP &amp; NEXT [SPACEBAR]';
+    }
 
     let curSheet = 0;
+    let focusedDomRow = null;
+
     rows.forEach((row, idx) => {
       if (row.sheet_number !== curSheet) {
         curSheet = row.sheet_number;
@@ -1141,42 +1301,76 @@
         el.punchChecklistContainer.appendChild(hdr);
       }
 
+      if (state.stepMode === 'notes_only' && (row.spaces_before || 0) > 0) {
+        const sp = row.spaces_before;
+        const gapDiv = document.createElement('div');
+        gapDiv.className = 'punch-log-spacer-group';
+        gapDiv.innerHTML =
+          `<span>⋯ LEAVE ${sp} EMPTY SPACE${sp > 1 ? 'S' : ''} BLANK ⋯</span>` +
+          `<span class="space-meter-wrap">${buildSpaceBlocksHtml(sp, 'gap')}</span>`;
+        el.punchChecklistContainer.appendChild(gapDiv);
+      }
+
       const isDone = state.checkedRows.has(row.global_row);
+      const isFocused = idx === state.focusedRowIdx;
       const rEl = document.createElement('div');
       rEl.className =
         'punch-log-row' +
+        (row.is_space ? ' space-row' : '') +
         (isDone ? ' done' : '') +
-        (idx === state.focusedRowIdx ? ' focused' : '');
+        (isFocused ? ' focused' : '');
 
       const cb = document.createElement('input');
       cb.type = 'checkbox';
       cb.checked = isDone;
 
       const coord = document.createElement('div');
-      coord.innerHTML = `<strong style="color:var(--text-hi);">LN ${row.sheet_row}</strong> <span style="color:var(--text-low);">${row.sheet_y_mm.toFixed(0)}mm</span>`;
-
       const mini = document.createElement('div');
-      mini.className = 'mini-15-bar';
-      const rHits = new Set(row.punches.map((p) => p.col));
-      for (let c = 0; c < 15; c++) {
-        const mc = document.createElement('div');
-        mc.className = 'm15-c' + (BOLD_COLS.has(c) ? ' b' : '') + (rHits.has(c) ? ' hit' : '');
-        mc.innerHTML = '<span class="m15-dot"></span>';
-        mini.appendChild(mc);
-      }
-
       const txt = document.createElement('div');
-      txt.style.color = 'var(--text-mid)';
-      txt.textContent = row.punches.map((p) => `${p.label}(#${p.col_num})`).join(', ');
+
+      if (row.is_space) {
+        coord.innerHTML =
+          `<strong style="color:var(--vfd-cyan);">SPACE ${row.space_index}/${row.space_run_total}</strong> ` +
+          `<span style="color:var(--text-low);">LN ${row.sheet_row}</span>`;
+        mini.className = 'mini-15-bar space-bar';
+        for (let c = 0; c < 15; c++) {
+          const mc = document.createElement('div');
+          mc.className = 'm15-c' + (BOLD_COLS.has(c) ? ' b' : '');
+          mc.innerHTML = '<span class="m15-dot"></span>';
+          mini.appendChild(mc);
+        }
+        const punchNextHint = row.space_index === row.space_run_total
+          ? ' <span style="color:var(--sig-yellow); font-weight:600;">→ Punch next</span>'
+          : '';
+        txt.innerHTML = `<span style="color:var(--text-low);">— Empty space (leave blank) —</span>${punchNextHint}`;
+      } else {
+        coord.innerHTML =
+          `<strong style="color:var(--text-hi);">PUNCH</strong> ` +
+          `<span style="color:var(--text-low);">LN ${row.sheet_row}</span>`;
+        mini.className = 'mini-15-bar';
+        const rHits = new Set(row.punches.map((p) => p.col));
+        for (let c = 0; c < 15; c++) {
+          const mc = document.createElement('div');
+          mc.className = 'm15-c' + (BOLD_COLS.has(c) ? ' b' : '') + (rHits.has(c) ? ' hit' : '');
+          mc.innerHTML = '<span class="m15-dot"></span>';
+          mini.appendChild(mc);
+        }
+        txt.style.color = 'var(--text-mid)';
+        txt.textContent = row.punches.map((p) => `${p.label}(#${p.col_num})`).join(', ');
+      }
 
       rEl.addEventListener('click', (e) => {
         if (e.target === cb) return;
         state.focusedRowIdx = idx;
-        row.punches.forEach((p) => {
-          triggerTineVisual(p.col);
-          playSingleMusicBoxPluck(72 + RELATIVE_SEMITONES[p.col]);
-        });
-        renderOperatorPunchGuide();
+        if (row.is_space) {
+          playPaperAdvanceClick();
+        } else {
+          row.punches.forEach((p) => {
+            triggerTineVisual(p.col);
+            playSingleMusicBoxPluck(72 + RELATIVE_SEMITONES[p.col]);
+          });
+        }
+        renderOperatorPunchGuide({ scrollLog: false, syncStrip: true });
       });
 
       cb.addEventListener('change', () => {
@@ -1190,22 +1384,33 @@
       rEl.appendChild(mini);
       rEl.appendChild(txt);
       el.punchChecklistContainer.appendChild(rEl);
+      if (isFocused) focusedDomRow = rEl;
     });
+
+    if (scrollLog && focusedDomRow && typeof focusedDomRow.scrollIntoView === 'function') {
+      focusedDomRow.scrollIntoView({ block: 'nearest' });
+    }
+    drawStripCanvas();
+    if (syncStrip) syncStripScrollToOperatorRow();
   }
 
   function stampCurrentRowAndAdvance() {
-    const rows = (state.arrangement && state.arrangement.punch_rows) || [];
+    const rows = getOperatorRows();
     if (!rows.length) return;
     const cur = rows[state.focusedRowIdx];
     if (cur) {
       state.checkedRows.add(cur.global_row);
-      cur.punches.forEach((p) => {
-        triggerTineVisual(p.col);
-        playSingleMusicBoxPluck(72 + RELATIVE_SEMITONES[p.col]);
-      });
+      if (cur.is_space) {
+        playPaperAdvanceClick();
+      } else {
+        cur.punches.forEach((p) => {
+          triggerTineVisual(p.col);
+          playSingleMusicBoxPluck(72 + RELATIVE_SEMITONES[p.col]);
+        });
+      }
     }
     state.focusedRowIdx = Math.min(rows.length - 1, state.focusedRowIdx + 1);
-    renderOperatorPunchGuide();
+    renderOperatorPunchGuide({ scrollLog: true, syncStrip: true });
   }
 
   async function refreshA4Preview() {
@@ -1331,6 +1536,24 @@
   function playSingleMusicBoxPluck(midi) {
     const ctx = ensureAudioCtx();
     schedulePluck(ctx, midi, ctx.currentTime + 0.008, 'kikkerland');
+  }
+
+  function playPaperAdvanceClick() {
+    try {
+      const ctx = ensureAudioCtx();
+      const t0 = ctx.currentTime + 0.004;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(280, t0);
+      osc.frequency.exponentialRampToValueAtTime(95, t0 + 0.022);
+      gain.gain.setValueAtTime(0.065, t0);
+      gain.gain.exponentialRampToValueAtTime(0.0005, t0 + 0.026);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t0);
+      osc.stop(t0 + 0.03);
+    } catch (_) {}
   }
 
   function stopAudio() {
@@ -1566,10 +1789,27 @@
       el.bayTabPrintA4.classList.toggle('active', m === 'a4');
       el.bayPanelPunchGuide.classList.toggle('hidden', m !== 'punch');
       el.bayPanelPrintA4.classList.toggle('hidden', m !== 'a4');
+      drawStripCanvas();
       if (m === 'a4') refreshA4Preview();
     };
     el.bayTabPunchGuide.addEventListener('click', () => setOutputMode('punch'));
     el.bayTabPrintA4.addEventListener('click', () => setOutputMode('a4'));
+
+    if (el.stepModeSelect) {
+      el.stepModeSelect.addEventListener('change', () => {
+        const prevRow = getActiveOperatorRow();
+        const prevGlobalRow = prevRow ? prevRow.global_row : 1;
+        state.stepMode = el.stepModeSelect.value === 'notes_only' ? 'notes_only' : 'all_lines';
+        const nextRows = getOperatorRows();
+        if (nextRows.length) {
+          const matchIdx = nextRows.findIndex((r) => r.global_row >= prevGlobalRow);
+          state.focusedRowIdx = matchIdx >= 0 ? matchIdx : nextRows.length - 1;
+        } else {
+          state.focusedRowIdx = 0;
+        }
+        renderOperatorPunchGuide({ scrollLog: true, syncStrip: true });
+      });
+    }
 
     el.existingUsableMmInput.addEventListener('change', () => {
       state.existingUsableMm = Math.max(80, Number(el.existingUsableMmInput.value) || 412);
@@ -1581,17 +1821,18 @@
     });
     el.resetCheckedRowsBtn.addEventListener('click', () => {
       state.checkedRows.clear();
-      renderOperatorPunchGuide();
+      state.focusedRowIdx = 0;
+      renderOperatorPunchGuide({ scrollLog: true, syncStrip: true });
     });
     el.printChecklistBtn.addEventListener('click', () => window.print());
     el.prevPunchRowBtn.addEventListener('click', () => {
       state.focusedRowIdx = Math.max(0, state.focusedRowIdx - 1);
-      renderOperatorPunchGuide();
+      renderOperatorPunchGuide({ scrollLog: true, syncStrip: true });
     });
     el.nextPunchRowBtn.addEventListener('click', () => {
-      const rows = (state.arrangement && state.arrangement.punch_rows) || [];
+      const rows = getOperatorRows();
       state.focusedRowIdx = Math.min(Math.max(0, rows.length - 1), state.focusedRowIdx + 1);
-      renderOperatorPunchGuide();
+      renderOperatorPunchGuide({ scrollLog: true, syncStrip: true });
     });
     el.stampAndAdvanceBtn.addEventListener('click', stampCurrentRowAndAdvance);
 
@@ -1611,7 +1852,7 @@
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) return;
 
       if (state.outputMode === 'punch') {
-        const rows = (state.arrangement && state.arrangement.punch_rows) || [];
+        const rows = getOperatorRows();
         if (rows.length) {
           if (e.key === ' ') {
             e.preventDefault();
@@ -1621,13 +1862,13 @@
           if (e.key === 'ArrowDown') {
             e.preventDefault();
             state.focusedRowIdx = Math.min(rows.length - 1, state.focusedRowIdx + 1);
-            renderOperatorPunchGuide();
+            renderOperatorPunchGuide({ scrollLog: true, syncStrip: true });
             return;
           }
           if (e.key === 'ArrowUp') {
             e.preventDefault();
             state.focusedRowIdx = Math.max(0, state.focusedRowIdx - 1);
-            renderOperatorPunchGuide();
+            renderOperatorPunchGuide({ scrollLog: true, syncStrip: true });
             return;
           }
         }

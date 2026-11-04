@@ -319,7 +319,8 @@ async def api_upload_file(file: UploadFile = File(...)) -> dict:
     if not raw:
         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
 
-    filename = file.filename or "uploaded_song"
+    raw_filename = file.filename or "uploaded_song"
+    filename = re.split(r"[\\/]", raw_filename)[-1] or "uploaded_song"
     lower = filename.lower()
     sid = f"upload:{uuid.uuid4().hex[:8]}"
     clean_title = re.sub(r"\.(mid|midi|abc|txt)$", "", filename, flags=re.IGNORECASE)

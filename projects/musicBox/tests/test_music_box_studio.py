@@ -244,3 +244,101 @@ def test_artist_catalog_and_holiday_green_day_live():
     top = s_res.json()["results"][0]
     assert top["title"].lower() == "holiday"
 
+
+def test_paper_output_station_spaces_and_strip_lines():
+    # Quarter, quarter, half, whole in C Major at 8mm/beat and 2mm grid spacing:
+    # Beats: 0 (LN 1), 1 (LN 5 -> 3 spaces before), 2 (LN 9 -> 3 spaces before), 4 (LN 17 -> 7 spaces before)
+    abc = """X:1
+T:Space Verification
+M:4/4
+L:1/4
+K:C
+C D E2 | G4 |]
+"""
+    song = parse_abc_string(abc, song_id="test:spaces")
+    arr = arrange_song_slice(
+        song,
+        mm_per_beat=8.0,
+        grid_snap_mm=2.0,
+        existing_grid_spacing_mm=2.0,
+        existing_strip_usable_mm=412.0,
+    )
+
+    punch_rows = arr["punch_rows"]
+    strip_lines = arr["strip_lines"]
+
+    assert [r["sheet_row"] for r in punch_rows] == [1, 5, 9, 17]
+    assert [r["spaces_before"] for r in punch_rows] == [0, 3, 3, 7]
+    assert all(r["is_space"] is False for r in punch_rows)
+
+    # strip_lines must include every physical grid line 1..17 sequentially (4 punched + 13 blank spaces)
+    assert len(strip_lines) == 17
+    assert [ln["global_row"] for ln in strip_lines] == list(range(1, 18))
+    assert sum(1 for ln in strip_lines if ln["is_space"]) == 13
+    assert sum(1 for ln in strip_lines if not ln["is_space"]) == 4
+
+    # Verify contiguous blank space run between LN 1 and LN 5 (global rows 2, 3, 4 -> 1..3 of 3)
+    run_1 = strip_lines[1:4]
+    assert [ln["is_space"] for ln in run_1] == [True, True, True]
+    assert [ln["space_index"] for ln in run_1] == [1, 2, 3]
+    assert [ln["space_run_total"] for ln in run_1] == [3, 3, 3]
+
+    # Verify contiguous blank space run between LN 9 and LN 17 (global rows 10..16 -> 1..7 of 7)
+    run_3 = strip_lines[9:16]
+    assert [ln["space_index"] for ln in run_3] == [1, 2, 3, 4, 5, 6, 7]
+    assert all(ln["space_run_total"] == 7 for ln in run_3)
+
+
+def test_windows_backslash_upload_and_winansi_pdf_safety():
+    mid = mido.MidiFile(ticks_per_beat=480)
+    tr = mido.MidiTrack()
+    mid.tracks.append(tr)
+    for pitch in [72, 74, 76, 77]:
+        tr.append(mido.Message("note_on", note=pitch, velocity=90, time=0))
+        tr.append(mido.Message("note_off", note=pitch, velocity=0, time=480))
+    buf = io.BytesIO()
+    mid.save(file=buf)
+
+    client = TestClient(app)
+    up = client.post(
+        "/api/upload",
+        files={"file": (r"C:\Users\Musician\Desktop\My_Windows_Tune.mid", buf.getvalue(), "audio/midi")},
+    )
+    assert up.status_code == 200
+    bundle = up.json()
+    assert bundle["song"]["title"] == "My_Windows_Tune"
+
+    # Verify ReportLab PDF generation handles Unicode symbols (em-dash, arrows, umlauts) cleanly
+    pdf_bytes = generate_a4_pdf(
+        "Für Elise — Windows Print Test ▲",
+        "Key: A minor — Transposed ▲ +3 semitones",
+        bundle["arrangement"]["punches"],
+    )
+    assert pdf_bytes.startswith(b"%PDF-")
+
+
+def test_windows_launcher_port_fallback_and_crlf_endings():
+    import pathlib
+    import socket
+    import launch
+
+    root = pathlib.Path(__file__).resolve().parent.parent
+    bat_bytes = (root / "run_windows.bat").read_bytes()
+    ps1_bytes = (root / "run_windows.ps1").read_bytes()
+
+    # Windows batch files require CRLF line endings for reliable label/goto parsing in cmd.exe
+    assert b"\r\n" in bat_bytes
+    assert b"\n" not in bat_bytes.replace(b"\r\n", b"")
+    assert b"\r\n" in ps1_bytes
+    assert b"\n" not in ps1_bytes.replace(b"\r\n", b"")
+
+    # Verify automatic port fallback when preferred port is already occupied
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as occupied:
+        occupied.bind(("127.0.0.1", 0))
+        occupied.listen(1)
+        busy_port = occupied.getsockname()[1]
+        chosen_port = launch.find_available_port(preferred_port=busy_port, host="127.0.0.1", max_tries=10)
+        assert chosen_port != busy_port
+        assert chosen_port > busy_port
+
+

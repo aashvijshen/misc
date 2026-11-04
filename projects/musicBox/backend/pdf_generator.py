@@ -78,6 +78,19 @@ def compute_a4_strip_segments(punches: List[dict], mm_per_beat: float = 8.0) -> 
     return segments
 
 
+def _pdf_safe_text(text: str) -> str:
+    """Ensure text only contains glyphs supported by ReportLab's built-in WinAnsi Helvetica on Windows."""
+    cleaned = (
+        str(text)
+        .replace("—", "-")
+        .replace("–", "-")
+        .replace("▲", "^")
+        .replace("▼", "v")
+        .replace("■", "#")
+    )
+    return cleaned.encode("cp1252", errors="replace").decode("cp1252")
+
+
 def generate_a4_pdf(
     title: str,
     subtitle: str,
@@ -86,9 +99,11 @@ def generate_a4_pdf(
     grid_line_mm: float = 4.0,
 ) -> bytes:
     """Render an exact 1:1 millimeter A4 PDF ready to print at 100% Actual Size."""
+    safe_title = _pdf_safe_text(title)
+    safe_subtitle = _pdf_safe_text(subtitle)
     buf = io.BytesIO()
     c = canvas.Canvas(buf, pagesize=(A4_WIDTH_MM * mm, A4_HEIGHT_MM * mm))
-    c.setTitle(f"{title} — Kikkerland 15-Note A4 Strip Pattern")
+    c.setTitle(f"{safe_title} - Kikkerland 15-Note A4 Strip Pattern")
 
     segments = compute_a4_strip_segments(punches, mm_per_beat=mm_per_beat)
     total_pages = segments[0]["total_pages"]
@@ -97,6 +112,14 @@ def generate_a4_pdf(
     # Helper to convert top-down millimeter coordinates (x_mm, y_from_top_mm) to ReportLab bottom-up points
     def pt_xy(x_m: float, y_top_m: float):
         return x_m * mm, (A4_HEIGHT_MM - y_top_m) * mm
+
+    def draw_up_triangle(cx_m: float, cy_top_m: float, half_w_m: float = 1.0, h_m: float = 1.6):
+        tri = c.beginPath()
+        tri.moveTo(*pt_xy(cx_m, cy_top_m - h_m / 2.0))
+        tri.lineTo(*pt_xy(cx_m - half_w_m, cy_top_m + h_m / 2.0))
+        tri.lineTo(*pt_xy(cx_m + half_w_m, cy_top_m + h_m / 2.0))
+        tri.close()
+        c.drawPath(tri, stroke=0, fill=1)
 
     for page_idx in range(total_pages):
         page_segs = [s for s in segments if s["page_index"] == page_idx]
@@ -107,14 +130,14 @@ def generate_a4_pdf(
         c.drawString(
             LEFT_PAGE_MARGIN_MM * mm,
             (A4_HEIGHT_MM - 14.0) * mm,
-            f"{title[:52]}  —  Kikkerland 15-Note Strip (Page {page_idx + 1}/{total_pages})",
+            f"{safe_title[:52]}  -  Kikkerland 15-Note Strip (Page {page_idx + 1}/{total_pages})",
         )
         c.setFont("Helvetica", 7.5)
         c.setFillColor(colors.HexColor("#57534E"))
         c.drawString(
             LEFT_PAGE_MARGIN_MM * mm,
             (A4_HEIGHT_MM - 18.5) * mm,
-            f"{subtitle}  |  IMPORTANT: Print at 100% / Actual Size (Disable 'Fit to Page') on 180-220 gsm cardstock.",
+            f"{safe_subtitle}  |  IMPORTANT: Print at 100% / Actual Size (Disable 'Fit to Page') on 180-220 gsm cardstock.",
         )
 
         # 50.0 mm Calibration Ruler at top-right
@@ -174,14 +197,16 @@ def generate_a4_pdf(
                 p.close()
                 c.drawPath(p, stroke=1, fill=0)
 
-                # Feed direction arrow in the lead-in tip
+                # Feed direction vector arrows + label in the lead-in tip
                 c.setFillColor(colors.HexColor("#292524"))
                 c.setFont("Helvetica-Bold", 6.2)
                 c.drawCentredString(
                     (sx + STRIP_WIDTH_MM / 2.0) * mm,
                     (A4_HEIGHT_MM - (sy_top + 5.2)) * mm,
-                    "▲ FEED THIS END FIRST (STRIP 1) ▲",
+                    "FEED THIS END FIRST (STRIP 1)",
                 )
+                draw_up_triangle(sx + 5.5, sy_top + 4.5, half_w_m=0.85, h_m=1.4)
+                draw_up_triangle(sx + STRIP_WIDTH_MM - 5.5, sy_top + 4.5, half_w_m=0.85, h_m=1.4)
             else:
                 # Rectangular strip with shaded Glue/Tape alignment tab at top
                 c.setFillColor(colors.HexColor("#F5F5F4"))
@@ -265,9 +290,9 @@ def generate_a4_pdf(
             c.restoreState()
 
             footer_label = (
-                f"▼ ATTACH STRIP {seg['strip_number'] + 1} HERE ▼"
+                f"v  ATTACH STRIP {seg['strip_number'] + 1} HERE  v"
                 if seg["strip_number"] < total_strips
-                else f"■ END OF SONG (STRIP {seg['strip_number']}/{total_strips}) ■"
+                else f"--- END OF SONG (STRIP {seg['strip_number']}/{total_strips}) ---"
             )
             c.setFillColor(colors.HexColor("#57534E"))
             c.setFont("Helvetica", 5.3)

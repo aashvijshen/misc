@@ -845,11 +845,22 @@ def arrange_song_slice(
         rows_map.setdefault(row_zero_idx, []).append(p)
 
     punch_rows: List[dict] = []
+    prev_sheet_num = 0
+    prev_local_row = 0
+
     for row_idx in sorted(rows_map.keys()):
         row_y_mm = round(row_idx * grid_step, 2)
         sheet_num = int(row_y_mm // usable_existing) + 1
         local_y_mm = round(row_y_mm - (sheet_num - 1) * usable_existing, 2)
         local_row_num = int(round(local_y_mm / grid_step)) + 1
+
+        if sheet_num != prev_sheet_num:
+            spaces_before = max(0, local_row_num - 1)
+        else:
+            spaces_before = max(0, local_row_num - prev_local_row - 1)
+        prev_sheet_num = sheet_num
+        prev_local_row = local_row_num
+
         row_punches = sorted(rows_map[row_idx], key=lambda x: x["col"])
         punch_rows.append({
             "global_row": row_idx + 1,
@@ -857,6 +868,8 @@ def arrange_song_slice(
             "sheet_row": local_row_num,
             "global_y_mm": row_y_mm,
             "sheet_y_mm": local_y_mm,
+            "is_space": False,
+            "spaces_before": spaces_before,
             "punches": [
                 {
                     "col": rp["col"],
@@ -870,6 +883,55 @@ def arrange_song_slice(
                 for rp in row_punches
             ],
         })
+
+    # Build full sequential strip_lines (every grid line 1..N including blank "space" rows)
+    strip_lines: List[dict] = []
+    if rows_map:
+        max_row_idx = max(rows_map.keys())
+        punched_by_global_row = {pr["global_row"]: pr for pr in punch_rows}
+        for row_idx in range(max_row_idx + 1):
+            g_row = row_idx + 1
+            if g_row in punched_by_global_row:
+                pr = punched_by_global_row[g_row]
+                strip_lines.append({
+                    **pr,
+                    "space_index": 0,
+                    "space_run_total": 0,
+                })
+            else:
+                row_y_mm = round(row_idx * grid_step, 2)
+                sheet_num = int(row_y_mm // usable_existing) + 1
+                local_y_mm = round(row_y_mm - (sheet_num - 1) * usable_existing, 2)
+                local_row_num = int(round(local_y_mm / grid_step)) + 1
+                strip_lines.append({
+                    "global_row": g_row,
+                    "sheet_number": sheet_num,
+                    "sheet_row": local_row_num,
+                    "global_y_mm": row_y_mm,
+                    "sheet_y_mm": local_y_mm,
+                    "is_space": True,
+                    "spaces_before": 0,
+                    "space_index": 1,
+                    "space_run_total": 1,
+                    "punches": [],
+                })
+
+        # Annotate contiguous blank-space runs (per sheet) with 1-based space_index & space_run_total
+        i = 0
+        n_lines = len(strip_lines)
+        while i < n_lines:
+            if not strip_lines[i]["is_space"]:
+                i += 1
+                continue
+            run_sheet = strip_lines[i]["sheet_number"]
+            j = i
+            while j < n_lines and strip_lines[j]["is_space"] and strip_lines[j]["sheet_number"] == run_sheet:
+                j += 1
+            run_len = j - i
+            for k in range(run_len):
+                strip_lines[i + k]["space_index"] = k + 1
+                strip_lines[i + k]["space_run_total"] = run_len
+            i = j
 
     # Estimate A4 strip columns & pages (each A4 portrait page holds 4 strips of ~232 mm usable length)
     a4_usable_per_strip_mm = 230.0
@@ -926,5 +988,6 @@ def arrange_song_slice(
         },
         "punches": resolved_punches,
         "punch_rows": punch_rows,
+        "strip_lines": strip_lines,
         "original_audio_notes": original_audio_notes,
     }

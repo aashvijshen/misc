@@ -4,16 +4,21 @@ Full-screen electro-mechanical punch-tape web studio for turning online or local
 
 ## Quick Start
 
-```bash
-# First-time setup (creates local virtualenv and installs dependencies)
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
+### Windows 10 / 11 (One-Click)
+1. Install **Python 3.10+** from [python.org/downloads/windows](https://www.python.org/downloads/windows/) (during setup, check **"Add python.exe to PATH"** or keep the default `py` Python Launcher enabled).
+2. Double-click **`run_windows.bat`** in File Explorer (or run `.\run_windows.ps1` in PowerShell).
+3. On first launch, the script automatically creates `.venv`, installs `requirements.txt`, picks an open local port (`8000` by default, auto-falling back if busy), and opens **`http://127.0.0.1:8000`** in your browser. Subsequent launches skip `pip install` automatically via `.venv\.deps_stamp`.
 
-# Launch local studio server
-./run.sh
+```powershell
+# Optional PowerShell flags:
+.\run_windows.ps1 -Port 8080 -NoBrowser
 ```
 
-Then open **http://127.0.0.1:8000** in your browser.
+### Linux / macOS
+```bash
+./run.sh
+```
+*(Automatically creates `.venv` and installs `requirements.txt` on first run, then opens **http://127.0.0.1:8000**.)*
 
 ## Features
 
@@ -30,11 +35,14 @@ Then open **http://127.0.0.1:8000** in your browser.
   - **Center Bay**: Full-height interactive punch strip, animated 15-tine steel comb, WebAudio music-box synthesizer, mouse-rotatable brass hand-crank, and `Q`–`C` computer-keyboard tine plucking (`Space` to play/stop).
   - **Right Bay**: Simultaneous **Die-Punch Operator HUD** + row-by-row checklist and **1:1 A4 Blueprint Plotter**.
 - **Two Paper Output Workflows**:
-  1. **Existing Kikkerland Blank Paper Mode**: Step-by-step interactive row/column punch guide mapped to the physical `C D E F G A B C D E F G A B C` strip and its bold `E G B D F` treble-staff lines (`41.0 mm` width, `2.0 mm` column pitch, `412 mm` usable length).
+  1. **Existing Kikkerland Blank Paper Mode**: Step-by-step interactive row/column punch guide mapped to the physical `C D E F G A B C D E F G A B C` strip and its bold `E G B D F` treble-staff lines (`41.0 mm` width, `2.0 mm` column pitch, `412 mm` usable length). Displays **empty grid spaces** explicitly (`ALL LINES + SPACES` 1-line-per-Spacebar mode or `NOTES + GAP COUNT` mode with visual space meters) so you never need to read or subtract line numbers.
   2. **Printable A4 Sheet Mode**: Exact `1:1` millimeter PDF & SVG generator packing 4 strips (`41.0 mm` wide each) per A4 portrait sheet (`180–220 gsm` cardstock recommended) with cut lines, a tapered feed tip on Strip 1, numbered glue tabs on Strips 2..N, `2.0 mm` punch circles, and a `50.0 mm` print-scale calibration ruler.
 
 ## Project Structure
 
+- `launch.py` — Cross-platform UTF-8 server entrypoint with automatic port fallback and browser auto-open.
+- `run_windows.bat` / `run_windows.ps1` — One-click Windows CMD/Explorer and PowerShell launchers with automatic `.venv` provisioning.
+- `run.sh` — Linux/macOS launcher with automatic `.venv` provisioning.
 - `backend/kikkerland.py` — Physical strip geometry (`41.0 mm` width, `2.0 mm` spacing, `6.5 mm` margins, bold `E G B D F` landmarks).
 - `backend/music_engine.py` — MIDI & ABC parser, GM instrument analyzer, key detector, transposition optimizer, repeat-distance guard, and checklist builder.
 - `backend/search_ranker.py` — Relevance scorer for compound `Song + Artist` and generic single-word title queries.
