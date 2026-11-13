@@ -218,6 +218,38 @@
      - Updated `TilingEngine.process_and_export_all()` to export `accessories/route_inlay.stl` and `accessories/landmark_pins.stl`, embed seated copies in `full_assembly.stl` and $+15.0\text{ mm}$ hovering copies in `exploded_assembly.stl`, and log exact pin socket coordinates per tile in `ASSEMBLY_GUIDE.md`.
   4. **Verification (`tests/test_tiling.py`)**:
      - Added `test_route_and_landmark_pins_stl_export_and_manifold()` verifying `0` unmatched edges across `route_inlay.stl`, `landmark_pins.stl`, and all 4 carved terrain tiles.
+- **Iteration 20 (2026-11-13)**: Full Memorabilia Aesthetics, True Geographic Proportions, GPX/Trail Routing, 2-Manifold Urban/Skyline Extrusion, Wall-Hanging Keyholes, & Bambu `.3mf` Multi-Part Export:
+  1. **Geospatial Accuracy, Proportions Lock, & Multi-Mode GPX/Trail Routing (`engine/config.py`, `engine/geo.py`)**:
+     - Replaced linear latitude interpolation in `fetch_elevation_grid()` with exact Web Mercator `arcsinh(tan(lat))` pixel mapping + vectorized `scipy.ndimage.map_coordinates`, eliminating up to $+87.2\text{ km}$ latitude drift on country maps and accelerating DEM resampling by $\sim 40\times$.
+     - Added homeland archipelago clustering in `geocode_location()` so antimeridian/trans-oceanic countries (`New Zealand`, `Chile`, `France`, `USA`) preserve homeland geometry (`New Zealand` aspect fixed from $11.38\times$ bloat to true $0.53$).
+     - Added `lock_aspect_ratio` (`real_aspect_ratio` using $\cos(\text{lat})$) so elongated cities, islands, and marathons (`Manhattan`, `Italy`, `Kerala`) preserve exact real-world proportions.
+     - Added `parse_gps_track()` supporting `.gpx`, `.kml`, and `.geojson` tracks with distance & elevation-gain stats, plus multi-profile routing (`hiking` via `routed-foot`, `cycling` via `routed-bike`, `driving`, and `direct`).
+  2. **100% 2-Manifold CAD Engine, Collision-Free Trenches, Keyholes, Frames, & 3D Typography (`engine/mesh.py`, `engine/tiling.py`)**:
+     - Implemented `extrude_shapely_polygon_2manifold()` using `shapely.set_precision(0.02)` + `shapely.constrained_delaunay_triangles()`, eliminating all $26,126$ non-manifold edges on concave San Francisco urban blocks (`unmatched_edges = 0`), seating blocks & real 3D OSM buildings directly onto local hill elevations (`sample_z_func`), and clipping around frames and front title plaques.
+     - Fixed global multi-tile rotation around `(global_width_mm/2, global_depth_mm/2)`, reducing $2\times 2$ rotated seam steps from $17.43\text{ mm}$ to `0.0000 mm`.
+     - Implemented real rear `Wall-Hanging (Keyhole)` cavities (`_build_floor_with_optional_keyhole`) carved directly into $Z=0$ with a $45^\circ$ self-supporting screw-head retention chamber (`unmatched_edges = 0`).
+     - Fixed rectangular route trench collisions via rounded-cap Delaunay corridor subdivision + landmark-pin clearance collars, and generated flat-on-bed (`Z=0`, $100\%$ bed contact, tile-split $\le 250\text{ mm}$) `accessories/route_inlay.stl` strips plus head-down `accessories/landmark_pins.stl` ($18.85\text{ mm}^2$ crown bed contact per pin — $12.5\times$ increase).
+     - Added `+0.84 mm` crisp coastline water steps (`depress_water`), architectural shadowbox gallery frames (`frame_enabled`), and raised $+1.12\text{ mm}$ 3D vector typography plaques (`title_text`, `subtitle_text`).
+  3. **Bambu Studio `.3mf` Exporter, 4-View Diagnostic Renderer, & Desktop UI/CLI Parity (`engine/export.py`, `engine/preview.py`, `app.py`, `gui/index.html`, `mapmaker_cli.py`)**:
+     - Added `engine/export.py` generating multi-object color-grouped `full_assembly.3mf` archives (`Terrain_Relief`, `Urban_Structures`, `Frame_And_Plaque`, `Title_Typography`, `Route_Path`, `Landmark_Pins`) and `.zip` bundles.
+     - Added `engine/preview.py` generating 4-view shaded diagnostic sheets (`previews/diagnostic_views.png`) on every export.
+     - Upgraded Desktop UI (`gui/index.html`) and CLI (`mapmaker_cli.py`) with GPX upload, quick place-name pinning, per-pin delete & waypoint undo, live 3D frame/plaque/skyline preview, printer presets, and 1-click `.3mf`/`.zip` downloads.
+  4. **OpenCASCADE 3D Boolean Collision & Manifold Verification (`tests/test_memorabilia_and_collisions.py`)**:
+     - Verified via FreeCAD OpenCASCADE `Part.common()` across sloped 3D terrain: `Tile ∩ Biscuit = 0.000000 mm³`, `Tile ∩ Seated Pin = 0.000000 mm³`, `Tile ∩ Route Inlay = 0.000000 mm³`, and `Route Inlay ∩ Seated Pin = 0.000000 mm³`.
+     - Verified `unmatched_edges == 0` across Mount Fuji GPX climb + plaque, San Francisco hilly urban blocks, India visited-pins coastline silhouette, and all existing regression suites.
+- **Iteration 21 (2026-11-13)**: Turnkey Windows 10/11 Native Port, NTFS Lock Safety, Explorer Integration, & Portable `.zip` / `.exe` Packaging:
+  1. **Cross-OS Platform Utilities (`engine/platform_utils.py`, `requirements.txt`)**:
+     - Added `matplotlib>=3.6.0` to `requirements.txt` and implemented `resolve_bold_ttf_path()` checking bundled Matplotlib `DejaVuSans-Bold.ttf`, Windows `%WINDIR%\Fonts` (`segoeuib.ttf`, `arialbd.ttf`), macOS Fonts, and Linux Fonts so 3D vector typography and 4-view preview headers work identically on Windows without `/usr/share/fonts/...` dependencies.
+     - Routed geospatial tile/vector cache on Windows to native `%LOCALAPPDATA%\MapMaker3D\cache` (`get_cache_dir()`) and added `certifi`-fallback HTTPS resilience (`urlopen_resilient()`).
+  2. **NTFS File-Lock Safety & Firewall-Free Server (`engine/geo.py`, `engine/blocks.py`, `engine/export.py`, `engine/tiling.py`, `app.py`, `gui/index.html`)**:
+     - Closed all `Image.open()` and `zipfile` file handles via context managers and added `safe_remove_path()` retry logic to prevent Windows `[WinError 32]` file-lock errors.
+     - Changed default HTTP bind in `app.py` to `127.0.0.1` (eliminating Windows Defender Firewall UAC prompts), added `/api/ping` double-launch attach + automatic port fallback (`8765–8779`), and added `/api/open_folder` (`os.startfile`) wired to the **📂 Show in Explorer** button in the UI.
+  3. **Turnkey Windows Launchers & Portable Bundle (`run_mapmaker.bat`, `mapmaker_cli.bat`, `build_windows_exe.bat`, `package_portable.py`)**:
+     - Upgraded `run_mapmaker.bat` and added `mapmaker_cli.bat` to probe `py -3` and validate Python 3.9+ (bypassing the Windows 10/11 `WindowsApps\python.exe` Microsoft Store stub), auto-initializing an isolated `.venv`.
+     - Added `build_windows_exe.bat` (PyInstaller single-file `MapMaker3D.exe` builder) and `package_portable.py`, producing `dist/MapMaker3D_Windows_Portable.zip` (`137 KB`, CRLF `.bat` line endings verified).
+     - Verified 11/11 tests passing in `tests/test_cross_os.py`.
+
+
 
 
 

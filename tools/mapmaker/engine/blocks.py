@@ -24,8 +24,9 @@ from shapely.validation import make_valid
 
 from .config import BoundingBox
 from .geo import fetch_elevation_grid, fetch_map_texture, _is_cache_fresh
+from .platform_utils import get_cache_dir, urlopen_resilient
 
-CACHE_DIR = os.path.expanduser("~/.cache/mapmaker3d")
+CACHE_DIR = get_cache_dir()
 OVERPASS_CACHE_DIR = os.path.join(CACHE_DIR, "overpass")
 USER_AGENT = "MapMaker3D/1.0 (3D printing CAD engine; https://github.com/aashvij/mapmaker3d)"
 OVERPASS_ENDPOINTS = [
@@ -118,7 +119,7 @@ def _fetch_overpass_cached(
     for endpoint in OVERPASS_ENDPOINTS:
         try:
             req = urllib.request.Request(endpoint, data=data, headers=headers)
-            with urllib.request.urlopen(req, timeout=22) as resp:
+            with urlopen_resilient(req, timeout=22) as resp:
                 res = json.loads(resp.read().decode("utf-8"))
             if res and "elements" in res:
                 break
@@ -203,7 +204,8 @@ def fetch_urban_blocks(
     tex_img = None
     try:
         tex_bytes = fetch_map_texture(bbox, target_size=1024, force_refresh=force_refresh)
-        tex_img = Image.open(io.BytesIO(tex_bytes)).convert("RGB")
+        with Image.open(io.BytesIO(tex_bytes)) as im_tex:
+            tex_img = im_tex.convert("RGB")
     except Exception as e:
         sys.stderr.write(f"[DEBUG] Map texture raster mask unavailable: {e}\n")
 
