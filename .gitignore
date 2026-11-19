@@ -30,10 +30,13 @@ tools/mapmaker/**/.cache/**
 **/__pycache__/**
 **/*.pyc
 
-# Whitelist only 3D CAD and mesh files in projects
+# Whitelist only 3D CAD and mesh files in projects (plus customizer tools)
 !projects/**/*.FCStd
 !projects/**/*.step
 !projects/**/*.stl
+!projects/bbmp_signboard/sign_customizer.py
 
-# Track this .gitignore
+# Track root reference guides & .gitignore
+!IDEA_CATALOG.md
+!POST_PROCESSING_GUIDE.md
 !.gitignore
