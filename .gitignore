@@ -11,6 +11,7 @@
 !tools/**/
 !tools/habitree/**
 !tools/mapmaker/**
+!tools/showcase/**
 
 # Never track local virtualenvs, caches, or generated output files
 projects/musicBox/.venv/

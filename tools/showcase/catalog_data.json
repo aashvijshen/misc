@@ -1,0 +1,1213 @@
+{
+  "settings": {
+    "studioName": "Aashvij Studio",
+    "defaultFilamentPerKg": 1350,
+    "wasteBufferPct": 8,
+    "printerWearPerHr": 14,
+    "electricityPerHr": 1.0,
+    "craftLaborPerHr": 450,
+    "giftWrapCost": 20
+  },
+  "spools": [
+    {
+      "id": "coral-red",
+      "name": "Coral",
+      "hex": "#E26D5A",
+      "inStock": true
+    },
+    {
+      "id": "pastel-mint",
+      "name": "Mint",
+      "hex": "#A8E0C8",
+      "inStock": true
+    },
+    {
+      "id": "matte-cream",
+      "name": "Cream",
+      "hex": "#F2EAD8",
+      "inStock": true
+    },
+    {
+      "id": "forest-green",
+      "name": "Forest",
+      "hex": "#4E8D57",
+      "inStock": true
+    },
+    {
+      "id": "earth-brown",
+      "name": "Moss Base",
+      "hex": "#6E5A44",
+      "inStock": true
+    },
+    {
+      "id": "snow-white",
+      "name": "White",
+      "hex": "#F4F5F6",
+      "inStock": true
+    },
+    {
+      "id": "crimson-balloon",
+      "name": "Crimson",
+      "hex": "#B53F38",
+      "inStock": true
+    },
+    {
+      "id": "hemp-rope",
+      "name": "Hemp Tan",
+      "hex": "#B9996B",
+      "inStock": true
+    },
+    {
+      "id": "warm-sand",
+      "name": "Sand",
+      "hex": "#D8CFC2",
+      "inStock": true
+    },
+    {
+      "id": "botanical-sage",
+      "name": "Sage",
+      "hex": "#6B9E82",
+      "inStock": true
+    },
+    {
+      "id": "sakura-pink",
+      "name": "Sakura",
+      "hex": "#F4B4C4",
+      "inStock": true
+    },
+    {
+      "id": "charcoal-slate",
+      "name": "Slate",
+      "hex": "#3A3F45",
+      "inStock": true
+    }
+  ],
+  "items": [
+    {
+      "id": "frog_mushroom_lamp",
+      "slug": "frog_mushroom_lamp",
+      "name": "Mushroom Frog Lamp",
+      "summary": "Hand-painted mossy base · LED tealight included",
+      "category": "Lamps",
+      "inDeck": true,
+      "dimensions": "12 × 12 × 11.6 cm",
+      "filamentGrams": 150.0,
+      "filamentRatePerKg": 1350,
+      "printHours": 7.2,
+      "plateSwaps": 7,
+      "assemblyMins": 18,
+      "paintingMins": 35,
+      "batchSize": 1,
+      "bom": [
+        {
+          "name": "LED Tealight",
+          "cost": 19
+        },
+        {
+          "name": "Paints, Gesso & Matte Varnish",
+          "cost": 32
+        },
+        {
+          "name": "Gel CA Glue",
+          "cost": 12
+        }
+      ],
+      "price": 1399,
+      "swatches": [
+        "coral-red",
+        "pastel-mint",
+        "matte-cream",
+        "forest-green",
+        "earth-brown"
+      ],
+      "media": [
+        {
+          "url": "/media/frog_mushroom_lamp/previews/assembled_glow_render.png",
+          "label": "Glow Render",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/frog_mushroom_lamp/previews/exploded_cad_render.png",
+          "label": "Modular Parts",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "cap_spots.stl",
+          "solidCm3": 2.03,
+          "areaCm2": 29.17,
+          "estGrams": 2.5
+        },
+        {
+          "file": "gill_diffuser.stl",
+          "solidCm3": 25.87,
+          "areaCm2": 365.55,
+          "estGrams": 32.1
+        },
+        {
+          "file": "leaf_hat.stl",
+          "solidCm3": 1.71,
+          "areaCm2": 17.89,
+          "estGrams": 2.0
+        },
+        {
+          "file": "moss_base.stl",
+          "solidCm3": 78.13,
+          "areaCm2": 193.05,
+          "estGrams": 32.8
+        },
+        {
+          "file": "mushroom_cap.stl",
+          "solidCm3": 46.7,
+          "areaCm2": 319.23,
+          "estGrams": 39.0
+        },
+        {
+          "file": "mushroom_stem.stl",
+          "solidCm3": 47.38,
+          "areaCm2": 86.13,
+          "estGrams": 17.0
+        },
+        {
+          "file": "sleepy_frog.stl",
+          "solidCm3": 10.21,
+          "areaCm2": 29.09,
+          "estGrams": 4.7
+        }
+      ],
+      "scannedGrams": 130.1,
+      "scannedPrintHours": 6.8
+    },
+    {
+      "id": "ghost_balloon",
+      "slug": "ghost_balloon",
+      "name": "Ghost Balloon Lamp",
+      "summary": "3-strand twisted rope · LED tealight included",
+      "category": "Lamps",
+      "inDeck": true,
+      "dimensions": "6.5 × 6.5 × 18 cm",
+      "filamentGrams": 31.0,
+      "filamentRatePerKg": 1350,
+      "printHours": 2.2,
+      "plateSwaps": 3,
+      "assemblyMins": 8,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [
+        {
+          "name": "LED Tealight",
+          "cost": 19
+        },
+        {
+          "name": "CA Glue",
+          "cost": 5
+        }
+      ],
+      "price": 749,
+      "swatches": [
+        "snow-white",
+        "crimson-balloon",
+        "hemp-rope"
+      ],
+      "media": [
+        {
+          "url": "/media/ghost_balloon/previews/ghost_balloon_assembly_1b_twisted.png",
+          "label": "Twisted Rope",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/ghost_balloon/previews/ghost_balloon_assembly.png",
+          "label": "Comparison",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [
+        "/media/ghost_balloon/previews/ghost_balloon_assembly_1a_smooth.png"
+      ],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "balloon.stl",
+          "solidCm3": 39.3,
+          "areaCm2": 58.43,
+          "estGrams": 12.9
+        },
+        {
+          "file": "ghost_enlarged_hand.stl",
+          "solidCm3": 8.05,
+          "areaCm2": 156.12,
+          "estGrams": 10.0
+        },
+        {
+          "file": "rope_base.stl",
+          "solidCm3": 2.99,
+          "areaCm2": 32.45,
+          "estGrams": 3.6
+        },
+        {
+          "file": "rope_base_twisted.stl",
+          "solidCm3": 2.68,
+          "areaCm2": 31.29,
+          "estGrams": 3.3
+        },
+        {
+          "file": "rope_riser.stl",
+          "solidCm3": 1.29,
+          "areaCm2": 13.7,
+          "estGrams": 1.5
+        },
+        {
+          "file": "rope_riser_twisted.stl",
+          "solidCm3": 1.08,
+          "areaCm2": 18.53,
+          "estGrams": 1.3
+        }
+      ],
+      "scannedGrams": 32.6,
+      "scannedPrintHours": 2.2
+    },
+    {
+      "id": "rotating_organizer",
+      "slug": "rotating_organizer",
+      "name": "Botanical Organizer",
+      "summary": "360° lazy-Susan · Sculpted leaf relief",
+      "category": "Home",
+      "inDeck": true,
+      "dimensions": "Ø25 × 23.5 cm",
+      "filamentGrams": 555.0,
+      "filamentRatePerKg": 1250,
+      "printHours": 12.5,
+      "plateSwaps": 4,
+      "assemblyMins": 6,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [
+        {
+          "name": "6× Silicone Base Dots",
+          "cost": 18
+        }
+      ],
+      "price": 1899,
+      "swatches": [
+        "warm-sand",
+        "botanical-sage",
+        "matte-cream"
+      ],
+      "media": [
+        {
+          "url": "/media/rotating_organizer/previews/assembled_2layer_skincare.png",
+          "label": "2-Tier",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/rotating_organizer/previews/assembled_1layer_spice.png",
+          "label": "1-Tier",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/rotating_organizer/previews/closeup_botanical_details.png",
+          "label": "Leaf Detail",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [
+        {
+          "id": "2-tier",
+          "name": "2-Tier",
+          "dimensions": "Ø25 × 23.5 cm",
+          "filamentGrams": 555.0,
+          "printHours": 12.5,
+          "price": 1899,
+          "heroMediaIndex": 0
+        },
+        {
+          "id": "1-tier",
+          "name": "1-Tier",
+          "dimensions": "Ø25 × 6.8 cm",
+          "filamentGrams": 297.0,
+          "printHours": 6.5,
+          "price": 1299,
+          "heroMediaIndex": 1
+        }
+      ],
+      "scannedParts": [
+        {
+          "file": "base.stl",
+          "solidCm3": 160.38,
+          "areaCm2": 519.91,
+          "estGrams": 79.1
+        },
+        {
+          "file": "pipe.stl",
+          "solidCm3": 115.67,
+          "areaCm2": 238.01,
+          "estGrams": 44.1
+        },
+        {
+          "file": "plug.stl",
+          "solidCm3": 3.82,
+          "areaCm2": 25.38,
+          "estGrams": 3.1
+        },
+        {
+          "file": "top_cap.stl",
+          "solidCm3": 5.69,
+          "areaCm2": 32.02,
+          "estGrams": 4.1
+        },
+        {
+          "file": "tray.stl",
+          "solidCm3": 253.49,
+          "areaCm2": 1724.1,
+          "estGrams": 210.7
+        }
+      ],
+      "scannedGrams": 341.1,
+      "scannedPrintHours": 16.1
+    },
+    {
+      "id": "habit_tree",
+      "slug": "habit_tree",
+      "name": "Sakura Habit Tree",
+      "summary": "100-blossom bonsai tracker · Pot storage vault",
+      "category": "Decor",
+      "inDeck": false,
+      "dimensions": "16.8 × 12.9 × 17.7 cm",
+      "filamentGrams": 215.0,
+      "filamentRatePerKg": 1350,
+      "printHours": 9.8,
+      "plateSwaps": 6,
+      "assemblyMins": 15,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [
+        {
+          "name": "Blossom Pouch",
+          "cost": 25
+        }
+      ],
+      "price": 1799,
+      "swatches": [
+        "sakura-pink",
+        "forest-green",
+        "earth-brown",
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/habit_tree/previews/studio_hero_bloom.png",
+          "label": "Full Bloom",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/habit_tree/previews/studio_day0_bare.png",
+          "label": "Day 0",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [
+        "/media/habit_tree/previews/studio_exploded_assembly.png"
+      ],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "bonsai_trunk.stl",
+          "solidCm3": 29.37,
+          "areaCm2": 147.15,
+          "estGrams": 19.4
+        },
+        {
+          "file": "canopy_pads.stl",
+          "solidCm3": 204.36,
+          "areaCm2": 409.35,
+          "estGrams": 76.8
+        },
+        {
+          "file": "garden_stones.stl",
+          "solidCm3": 8.73,
+          "areaCm2": 31.53,
+          "estGrams": 4.6
+        },
+        {
+          "file": "moss_lid.stl",
+          "solidCm3": 78.03,
+          "areaCm2": 214.88,
+          "estGrams": 34.9
+        },
+        {
+          "file": "pot_base.stl",
+          "solidCm3": 122.55,
+          "areaCm2": 384.2,
+          "estGrams": 59.2
+        },
+        {
+          "file": "sakura_blossom.stl",
+          "solidCm3": 0.13,
+          "areaCm2": 2.31,
+          "estGrams": 0.2
+        },
+        {
+          "file": "sakura_blossom_tslot.stl",
+          "solidCm3": 0.13,
+          "areaCm2": 2.3,
+          "estGrams": 0.2
+        }
+      ],
+      "scannedGrams": 195.3,
+      "scannedPrintHours": 9.7
+    },
+    {
+      "id": "bbmp_signboard",
+      "slug": "bbmp_signboard",
+      "name": "Bbmp Signboard",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 11.6,
+      "filamentRatePerKg": 1350,
+      "printHours": 0.9,
+      "plateSwaps": 3,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/bbmp_signboard/previews/studio_render.png",
+          "label": "Studio Render",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "arch_signboard.stl",
+          "solidCm3": 12.42,
+          "areaCm2": 78.34,
+          "estGrams": 9.7
+        },
+        {
+          "file": "pedestal_feet.stl",
+          "solidCm3": 1.65,
+          "areaCm2": 15.88,
+          "estGrams": 1.8
+        },
+        {
+          "file": "pillar_flutes_red.stl",
+          "solidCm3": 0.11,
+          "areaCm2": 3.4,
+          "estGrams": 0.1
+        }
+      ],
+      "scannedGrams": 11.6,
+      "scannedPrintHours": 0.9
+    },
+    {
+      "id": "big_e_paper",
+      "slug": "big_e_paper",
+      "name": "Big E Paper",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 183.2,
+      "filamentRatePerKg": 1350,
+      "printHours": 8.9,
+      "plateSwaps": 5,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/big_e_paper/previews/diagnostic_views_backpack.png",
+          "label": "Diagnostic Views Backpack",
+          "kind": "render",
+          "isDiagnostic": true
+        },
+        {
+          "url": "/media/big_e_paper/previews/diagnostic_views_frame.png",
+          "label": "Diagnostic Views Frame",
+          "kind": "render",
+          "isDiagnostic": true
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "backpack.stl",
+          "solidCm3": 37.71,
+          "areaCm2": 310.47,
+          "estGrams": 36.5
+        },
+        {
+          "file": "frame.stl",
+          "solidCm3": 79.84,
+          "areaCm2": 620.57,
+          "estGrams": 73.7
+        },
+        {
+          "file": "kiosk_stand.stl",
+          "solidCm3": 170.43,
+          "areaCm2": 390.91,
+          "estGrams": 68.8
+        },
+        {
+          "file": "thumb_knob.stl",
+          "solidCm3": 4.05,
+          "areaCm2": 21.34,
+          "estGrams": 2.8
+        },
+        {
+          "file": "top_cap.stl",
+          "solidCm3": 1.11,
+          "areaCm2": 16.08,
+          "estGrams": 1.4
+        }
+      ],
+      "scannedGrams": 183.2,
+      "scannedPrintHours": 8.9
+    },
+    {
+      "id": "boeing_747_stand",
+      "slug": "boeing_747_stand",
+      "name": "Boeing 747 Stand",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 17.5,
+      "filamentRatePerKg": 1350,
+      "printHours": 1.0,
+      "plateSwaps": 2,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/boeing_747_stand/previews/assembly_preview.png",
+          "label": "Assembly Preview",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/boeing_747_stand/previews/exploded_view.png",
+          "label": "Exploded View",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "belly_cradle.stl",
+          "solidCm3": 4.38,
+          "areaCm2": 29.73,
+          "estGrams": 3.6
+        },
+        {
+          "file": "swoosh_pedestal.stl",
+          "solidCm3": 21.9,
+          "areaCm2": 103.88,
+          "estGrams": 13.9
+        }
+      ],
+      "scannedGrams": 17.5,
+      "scannedPrintHours": 1.0
+    },
+    {
+      "id": "finishing_totem",
+      "slug": "finishing_totem",
+      "name": "Finishing Totem",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 20.5,
+      "filamentRatePerKg": 1350,
+      "printHours": 1.2,
+      "plateSwaps": 2,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/finishing_totem/previews/diagnostic_totem_shell.png",
+          "label": "Diagnostic Totem Shell",
+          "kind": "render",
+          "isDiagnostic": true
+        },
+        {
+          "url": "/media/finishing_totem/previews/diagnostic_views.png",
+          "label": "Diagnostic Views",
+          "kind": "render",
+          "isDiagnostic": true
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "totem_shell.stl",
+          "solidCm3": 31.26,
+          "areaCm2": 113.68,
+          "estGrams": 16.6
+        },
+        {
+          "file": "watchmaker_gear.stl",
+          "solidCm3": 3.43,
+          "areaCm2": 34.02,
+          "estGrams": 3.9
+        }
+      ],
+      "scannedGrams": 20.5,
+      "scannedPrintHours": 1.2
+    },
+    {
+      "id": "hot_air_balloon",
+      "slug": "hot_air_balloon",
+      "name": "Hot Air Balloon",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 119.2,
+      "filamentRatePerKg": 1350,
+      "printHours": 6.3,
+      "plateSwaps": 7,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/hot_air_balloon/previews/balloon_throat_burner_closeup.png",
+          "label": "Balloon Throat Burner Closeup",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/hot_air_balloon/previews/cat_basket_closeup.png",
+          "label": "Cat Basket Closeup",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/hot_air_balloon/previews/studio_render.png",
+          "label": "Studio Render",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "balloon_crown_cap.stl",
+          "solidCm3": 26.38,
+          "areaCm2": 115.96,
+          "estGrams": 15.9
+        },
+        {
+          "file": "balloon_envelope.stl",
+          "solidCm3": 53.15,
+          "areaCm2": 500.48,
+          "estGrams": 57.4
+        },
+        {
+          "file": "burner_rigging.stl",
+          "solidCm3": 2.21,
+          "areaCm2": 30.58,
+          "estGrams": 2.7
+        },
+        {
+          "file": "clinging_cat.stl",
+          "solidCm3": 1.52,
+          "areaCm2": 11.44,
+          "estGrams": 1.4
+        },
+        {
+          "file": "cloud_rope_base.stl",
+          "solidCm3": 69.17,
+          "areaCm2": 149.58,
+          "estGrams": 27.1
+        },
+        {
+          "file": "mooring_rope_riser.stl",
+          "solidCm3": 2.01,
+          "areaCm2": 21.4,
+          "estGrams": 2.4
+        },
+        {
+          "file": "wicker_basket.stl",
+          "solidCm3": 18.01,
+          "areaCm2": 94.34,
+          "estGrams": 12.3
+        }
+      ],
+      "scannedGrams": 119.2,
+      "scannedPrintHours": 6.3
+    },
+    {
+      "id": "layeredPot",
+      "slug": "layeredPot",
+      "name": "Layeredpot",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 372.9,
+      "filamentRatePerKg": 1350,
+      "printHours": 17.3,
+      "plateSwaps": 3,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/layeredPot/previews/cutaway_cross_section.png",
+          "label": "Cutaway Cross Section",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/layeredPot/previews/studio_2tier_and_3tier.png",
+          "label": "Studio 2Tier And 3Tier",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "middle_tier.stl",
+          "solidCm3": 281.46,
+          "areaCm2": 723.78,
+          "estGrams": 121.0
+        },
+        {
+          "file": "planter_bowl.stl",
+          "solidCm3": 143.6,
+          "areaCm2": 748.24,
+          "estGrams": 97.7
+        },
+        {
+          "file": "reservoir_base.stl",
+          "solidCm3": 221.55,
+          "areaCm2": 1190.99,
+          "estGrams": 154.2
+        }
+      ],
+      "scannedGrams": 372.9,
+      "scannedPrintHours": 17.3
+    },
+    {
+      "id": "marble_tray",
+      "slug": "marble_tray",
+      "name": "Marble Tray",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 153.4,
+      "filamentRatePerKg": 1350,
+      "printHours": 7.3,
+      "plateSwaps": 3,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/marble_tray/previews/exploded_diagram.png",
+          "label": "Exploded Diagram",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/marble_tray/previews/studio_render.png",
+          "label": "Studio Render",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "base_plinth.stl",
+          "solidCm3": 72.11,
+          "areaCm2": 489.41,
+          "estGrams": 59.8
+        },
+        {
+          "file": "presence_marbles.stl",
+          "solidCm3": 15.2,
+          "areaCm2": 130.87,
+          "estGrams": 15.2
+        },
+        {
+          "file": "top_deck.stl",
+          "solidCm3": 155.52,
+          "areaCm2": 521.99,
+          "estGrams": 78.4
+        }
+      ],
+      "scannedGrams": 153.4,
+      "scannedPrintHours": 7.3
+    },
+    {
+      "id": "puzzle_piece_e8",
+      "slug": "puzzle_piece_e8",
+      "name": "Puzzle Piece E8",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 0.6,
+      "filamentRatePerKg": 1350,
+      "printHours": 0.5,
+      "plateSwaps": 1,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/puzzle_piece_e8/previews/diagnostic_views.png",
+          "label": "Diagnostic Views",
+          "kind": "render",
+          "isDiagnostic": true
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "model.stl",
+          "solidCm3": 0.5,
+          "areaCm2": 6.24,
+          "estGrams": 0.6
+        }
+      ],
+      "scannedGrams": 0.6,
+      "scannedPrintHours": 0.5
+    },
+    {
+      "id": "pvz_peashooter",
+      "slug": "pvz_peashooter",
+      "name": "Pvz Peashooter",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 20.9,
+      "filamentRatePerKg": 1350,
+      "printHours": 1.1,
+      "plateSwaps": 1,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/pvz_peashooter/previews/base_contact_view.png",
+          "label": "Base Contact View",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/pvz_peashooter/previews/studio_painted_guide.png",
+          "label": "Studio Painted Guide",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/pvz_peashooter/previews/studio_raw_print.png",
+          "label": "Studio Raw Print",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "model.stl",
+          "solidCm3": 38.87,
+          "areaCm2": 144.2,
+          "estGrams": 20.9
+        }
+      ],
+      "scannedGrams": 20.9,
+      "scannedPrintHours": 1.1
+    },
+    {
+      "id": "reactive_bloom_plant",
+      "slug": "reactive_bloom_plant",
+      "name": "Reactive Bloom Plant",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 152.7,
+      "filamentRatePerKg": 1350,
+      "printHours": 8.4,
+      "plateSwaps": 12,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/reactive_bloom_plant/previews/part1_pot_base_views.png",
+          "label": "Part1 Pot Base Views",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/reactive_bloom_plant/previews/part2_soil_and_toadstool_views.png",
+          "label": "Part2 Soil And Toadstool Views",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/reactive_bloom_plant/previews/part3_plunger_and_sprout_views.png",
+          "label": "Part3 Plunger And Sprout Views",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/reactive_bloom_plant/previews/part4_stem_and_leaves_views.png",
+          "label": "Part4 Stem And Leaves Views",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/reactive_bloom_plant/previews/part5_stamen_and_petals_views.png",
+          "label": "Part5 Stamen And Petals Views",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "baby_sprout.stl",
+          "solidCm3": 1.13,
+          "areaCm2": 9.63,
+          "estGrams": 1.1
+        },
+        {
+          "file": "bottom_plunger.stl",
+          "solidCm3": 1.96,
+          "areaCm2": 15.33,
+          "estGrams": 1.8
+        },
+        {
+          "file": "flower_stem.stl",
+          "solidCm3": 20.2,
+          "areaCm2": 121.8,
+          "estGrams": 15.3
+        },
+        {
+          "file": "leaf_collar.stl",
+          "solidCm3": 0.52,
+          "areaCm2": 10.24,
+          "estGrams": 0.6
+        },
+        {
+          "file": "petal_inner.stl",
+          "solidCm3": 1.22,
+          "areaCm2": 17.03,
+          "estGrams": 1.5
+        },
+        {
+          "file": "petal_outer.stl",
+          "solidCm3": 1.54,
+          "areaCm2": 21.39,
+          "estGrams": 1.9
+        },
+        {
+          "file": "pot_base.stl",
+          "solidCm3": 216.2,
+          "areaCm2": 543.08,
+          "estGrams": 91.7
+        },
+        {
+          "file": "sensor_toadstool.stl",
+          "solidCm3": 5.61,
+          "areaCm2": 29.36,
+          "estGrams": 3.8
+        },
+        {
+          "file": "servo_link.stl",
+          "solidCm3": 0.21,
+          "areaCm2": 2.96,
+          "estGrams": 0.3
+        },
+        {
+          "file": "soil_lid.stl",
+          "solidCm3": 66.23,
+          "areaCm2": 196.33,
+          "estGrams": 30.9
+        },
+        {
+          "file": "stamen_piston.stl",
+          "solidCm3": 3.15,
+          "areaCm2": 21.18,
+          "estGrams": 2.6
+        },
+        {
+          "file": "stem_leaf.stl",
+          "solidCm3": 1.2,
+          "areaCm2": 10.69,
+          "estGrams": 1.2
+        }
+      ],
+      "scannedGrams": 152.7,
+      "scannedPrintHours": 8.4
+    },
+    {
+      "id": "wall_station",
+      "slug": "wall_station",
+      "name": "Wall Station",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 265.7,
+      "filamentRatePerKg": 1350,
+      "printHours": 12.6,
+      "plateSwaps": 4,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/wall_station/previews/diagnostic_views_accent_inserts.png",
+          "label": "Diagnostic Views Accent Inserts",
+          "kind": "render",
+          "isDiagnostic": true
+        },
+        {
+          "url": "/media/wall_station/previews/diagnostic_views_assembly.png",
+          "label": "Diagnostic Views Assembly",
+          "kind": "render",
+          "isDiagnostic": true
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "accent_inserts.stl",
+          "solidCm3": 5.2,
+          "areaCm2": 79.25,
+          "estGrams": 6.4
+        },
+        {
+          "file": "back_plate.stl",
+          "solidCm3": 194.73,
+          "areaCm2": 1424.2,
+          "estGrams": 171.3
+        },
+        {
+          "file": "front_shell.stl",
+          "solidCm3": 58.41,
+          "areaCm2": 692.5,
+          "estGrams": 72.4
+        },
+        {
+          "file": "retainer_clips.stl",
+          "solidCm3": 12.58,
+          "areaCm2": 165.06,
+          "estGrams": 15.6
+        }
+      ],
+      "scannedGrams": 265.7,
+      "scannedPrintHours": 12.6
+    }
+  ],
+  "orders": []
+}

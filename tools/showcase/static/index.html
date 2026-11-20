@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Maker Deck &amp; Cost Studio</title>
+  <meta name="description" content="Minimal mobile-first 3D print showcase deck, cost &amp; profit margin calculator, and UPI/WhatsApp quote tool." />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#F7F4EF" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&amp;family=JetBrains+Mono:wght@500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="/static/index.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <h1 id="studio-brand-title" class="brand-title">Aashvij Studio</h1>
+
+      <nav class="nav-tabs" aria-label="Views">
+        <button id="tab-btn-deck" class="nav-tab active" type="button" data-view="deck">Deck</button>
+        <button id="tab-btn-calc" class="nav-tab" type="button" data-view="calc">Calculator</button>
+        <button id="tab-btn-ops" class="nav-tab" type="button" data-view="ops">Queue</button>
+      </nav>
+
+      <div class="topbar-actions">
+        <button id="btn-theme-toggle" class="icon-pill" type="button" title="Toggle Dim Mode">Dim</button>
+        <button id="btn-open-settings" class="icon-pill" type="button" title="UPI &amp; Studio Setup">UPI</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-wrap">
+    <!-- VIEW 1: MINIMAL PHOTO-LED DECK -->
+    <section id="view-deck" aria-label="Showcase Deck">
+      <div id="deck-grid" class="deck-grid"></div>
+    </section>
+
+    <!-- VIEW 2: COST & PROFIT MARGIN CALCULATOR -->
+    <section id="view-calc" aria-label="Cost Calculator" hidden>
+      <div class="calc-layout">
+        <aside class="card-panel">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <strong style="font-size:0.9rem;">Projects</strong>
+            <button id="btn-rescan-projects" class="icon-pill" type="button" style="height:30px;font-size:0.74rem;">Sync STLs</button>
+          </div>
+          <div id="calc-project-list" class="proj-list"></div>
+
+          <details style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border-hairline);">
+            <summary style="cursor:pointer;font-size:0.8rem;font-weight:600;color:var(--ink-secondary);">Shop Defaults</summary>
+            <div class="inputs-grid" style="grid-template-columns:1fr 1fr;margin-top:10px;margin-bottom:0;">
+              <div class="field">
+                <label for="global-pla-rate">PLA (₹/kg)</label>
+                <input id="global-pla-rate" class="mono" type="number" step="50" />
+              </div>
+              <div class="field">
+                <label for="global-waste-pct">Waste (%)</label>
+                <input id="global-waste-pct" class="mono" type="number" step="1" />
+              </div>
+              <div class="field">
+                <label for="global-machine-hr">A1 (₹/h)</label>
+                <input id="global-machine-hr" class="mono" type="number" step="1" />
+              </div>
+              <div class="field">
+                <label for="global-labor-hr">Labor (₹/h)</label>
+                <input id="global-labor-hr" class="mono" type="number" step="25" />
+              </div>
+            </div>
+          </details>
+        </aside>
+
+        <div id="calc-detail-panel" class="card-panel"></div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: ORDER QUEUE & IN-STOCK SPOOLS -->
+    <section id="view-ops" aria-label="Orders and Spools" hidden>
+      <div class="two-col">
+        <div class="card-panel">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <strong style="font-size:0.95rem;">Orders</strong>
+            <button id="btn-new-order" class="btn btn-primary" type="button" style="min-height:34px;padding:6px 12px;font-size:0.78rem;">+ Order</button>
+          </div>
+          <div id="orders-list-container"></div>
+        </div>
+
+        <div class="card-panel">
+          <strong style="font-size:0.95rem;display:block;margin-bottom:10px;">Filament Stock</strong>
+          <div id="spools-grid-container" class="spools-grid"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Hidden multi-file uploader for Photos, GIFs, and Short Videos -->
+  <input id="hidden-media-input" type="file" accept="image/*,video/mp4,video/quicktime,video/webm,.gif" multiple hidden />
+
+  <!-- SHEET 1: PRODUCT DETAIL + MEDIA MANAGER -->
+  <div id="modal-item" class="modal-backdrop" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="item-sheet-title">
+      <div class="sheet-head">
+        <h2 id="item-sheet-title" class="sheet-title">Item</h2>
+        <div style="display:flex;gap:6px;">
+          <button id="btn-toggle-media-mgr" class="icon-pill" type="button">✎ Media</button>
+          <button class="icon-pill" type="button" data-close-modal="modal-item">✕</button>
+        </div>
+      </div>
+
+      <!-- Inline Add / Delete / Reorder Photos, GIFs & Videos -->
+      <div id="item-media-manager" class="media-manager" hidden>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+          <span style="font-size:0.78rem;font-weight:600;color:var(--ink-secondary);">Photos, GIFs &amp; Clips</span>
+          <button id="btn-upload-media" class="btn btn-primary" type="button" style="min-height:32px;padding:5px 11px;font-size:0.76rem;">
+            + Add Photo / Video / GIF
+          </button>
+        </div>
+        <div id="item-media-strip" class="media-strip"></div>
+      </div>
+
+      <div id="item-sheet-carousel" class="snap-carousel-wrap sheet-carousel"></div>
+
+      <div id="item-sheet-variants" class="segmented-pills" hidden></div>
+
+      <div class="detail-price-row">
+        <div id="item-sheet-price" class="detail-price">₹0</div>
+        <span id="item-sheet-dims" class="mono" style="font-size:0.8rem;color:var(--ink-muted);"></span>
+      </div>
+
+      <p id="item-sheet-summary" class="detail-meta-line"></p>
+
+      <div id="item-sheet-swatches" class="swatch-row"></div>
+
+      <div class="action-bar-3">
+        <button id="btn-sheet-share" class="btn btn-primary" type="button">Share</button>
+        <button id="btn-sheet-whatsapp" class="btn btn-whatsapp" type="button">WhatsApp</button>
+        <button id="btn-sheet-upi" class="btn btn-secondary" type="button">UPI QR</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHEET 2: SHARE COMPOSER -->
+  <div id="modal-share" class="modal-backdrop" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="share-sheet-title">
+      <div class="sheet-head">
+        <h2 id="share-sheet-title" class="sheet-title">Share</h2>
+        <button class="icon-pill" type="button" data-close-modal="modal-share">✕</button>
+      </div>
+
+      <div class="segmented-pills">
+        <button id="share-mode-card" class="seg-pill active" type="button">Price Card</button>
+        <button id="share-mode-raw" class="seg-pill" type="button">Original Media</button>
+      </div>
+
+      <div id="share-preview-stage" class="canvas-frame">
+        <canvas id="quote-card-canvas" width="900" height="1040"></canvas>
+      </div>
+
+      <div class="field" style="margin-bottom:12px;">
+        <label for="share-caption-text">Message</label>
+        <textarea id="share-caption-text" rows="3"></textarea>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <button id="btn-native-share" class="btn btn-primary" type="button" style="grid-column:1 / -1;">
+          Share Media + Message
+        </button>
+        <button id="btn-copy-card-img" class="btn btn-secondary" type="button">Copy Image</button>
+        <button id="btn-copy-share-text" class="btn btn-secondary" type="button">Copy Text</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHEET 3: WHATSAPP COMPOSER -->
+  <div id="modal-whatsapp" class="modal-backdrop" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="wa-sheet-title">
+      <div class="sheet-head">
+        <h2 id="wa-sheet-title" class="sheet-title">WhatsApp</h2>
+        <button class="icon-pill" type="button" data-close-modal="modal-whatsapp">✕</button>
+      </div>
+
+      <div class="inputs-grid" style="grid-template-columns:1fr 1fr;margin-bottom:10px;">
+        <div class="field">
+          <label for="wa-recipient-phone">Phone (Optional)</label>
+          <input id="wa-recipient-phone" class="mono" type="tel" placeholder="9876543210" />
+        </div>
+        <div class="field">
+          <label for="wa-buyer-name">Name (Optional)</label>
+          <input id="wa-buyer-name" type="text" placeholder="Buyer name" />
+        </div>
+      </div>
+
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.82rem;margin-bottom:10px;cursor:pointer;">
+        <input id="wa-include-upi" type="checkbox" />
+        <span>Include UPI ID in message</span>
+      </label>
+
+      <div class="field" style="margin-bottom:12px;">
+        <textarea id="wa-message-box" rows="4"></textarea>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:8px;">
+        <button id="btn-launch-whatsapp" class="btn btn-whatsapp" type="button">Open WhatsApp</button>
+        <button id="btn-log-from-wa" class="btn btn-secondary" type="button">+ Add to Queue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHEET 4: OFFLINE UPI QR -->
+  <div id="modal-upi" class="modal-backdrop" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="upi-sheet-title">
+      <div class="sheet-head">
+        <h2 id="upi-sheet-title" class="sheet-title">UPI QR</h2>
+        <button class="icon-pill" type="button" data-close-modal="modal-upi">✕</button>
+      </div>
+
+      <div id="upi-missing-banner" style="padding:10px;border-radius:10px;background:var(--bg-subtle);font-size:0.8rem;margin-bottom:10px;" hidden>
+        <div style="margin-bottom:6px;font-weight:600;">Set UPI ID (stored in this browser only):</div>
+        <div style="display:flex;gap:6px;">
+          <input id="upi-quick-id-input" class="mono" type="text" placeholder="name@okicici" style="flex:1;padding:7px 9px;border-radius:8px;border:1px solid var(--border-strong);background:var(--bg-surface);" />
+          <button id="btn-save-quick-upi" class="btn btn-primary" type="button" style="min-height:36px;">Save</button>
+        </div>
+      </div>
+
+      <div class="segmented-pills">
+        <button id="upi-split-full" class="seg-pill active" type="button">100% Full</button>
+        <button id="upi-split-half" class="seg-pill" type="button">50% Advance</button>
+        <button id="upi-split-custom" class="seg-pill" type="button">Custom ₹</button>
+      </div>
+
+      <div id="upi-custom-row" class="field" style="margin-bottom:8px;" hidden>
+        <input id="upi-custom-amount" class="mono" type="number" min="1" step="1" placeholder="Amount (₹)" />
+      </div>
+
+      <div class="qr-stage">
+        <div id="upi-qr-svg-container" class="qr-box"></div>
+        <div id="upi-qr-amount-display" class="mono" style="font-size:1.45rem;font-weight:700;margin-top:8px;">₹0</div>
+        <div id="upi-qr-note-display" style="font-size:0.76rem;color:#57534e;margin-top:2px;"></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <button id="btn-share-upi-card" class="btn btn-primary" type="button">Share / Copy QR</button>
+        <button id="btn-copy-upi-uri" class="btn btn-secondary" type="button">Copy upi://</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHEET 5: UPI / BROWSER SETUP -->
+  <div id="modal-settings" class="modal-backdrop" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="cfg-sheet-title">
+      <div class="sheet-head">
+        <h2 id="cfg-sheet-title" class="sheet-title">UPI &amp; Setup</h2>
+        <button class="icon-pill" type="button" data-close-modal="modal-settings">✕</button>
+      </div>
+      <p style="margin:0 0 12px;font-size:0.79rem;color:var(--ink-muted);">
+        Saved strictly in this browser's <code>localStorage</code> — never written to Git.
+      </p>
+
+      <div class="inputs-grid" style="grid-template-columns:1fr;">
+        <div class="field">
+          <label for="cfg-payee-name">Payee Name</label>
+          <input id="cfg-payee-name" type="text" placeholder="Aashvij" />
+        </div>
+        <div class="field">
+          <label for="cfg-upi-id">UPI ID</label>
+          <input id="cfg-upi-id" class="mono" type="text" placeholder="yourname@okaxis" />
+        </div>
+        <div class="field">
+          <label for="cfg-country-code">WhatsApp Country Code</label>
+          <input id="cfg-country-code" class="mono" type="text" value="91" />
+        </div>
+      </div>
+
+      <button id="btn-save-private-cfg" class="btn btn-primary" type="button" style="width:100%;">Save</button>
+    </div>
+  </div>
+
+  <div id="app-toast" class="toast" hidden></div>
+
+  <script src="/static/qrcode.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
