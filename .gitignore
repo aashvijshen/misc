@@ -35,6 +35,7 @@ tools/mapmaker/**/.cache/**
 !projects/**/*.FCStd
 !projects/**/*.step
 !projects/**/*.stl
+!projects/bbmp_signboard/build_bbmp.py
 !projects/bbmp_signboard/sign_customizer.py
 
 # Track root reference guides & .gitignore
