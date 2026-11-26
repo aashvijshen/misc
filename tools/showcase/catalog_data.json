@@ -377,18 +377,18 @@
       "scannedPrintHours": 16.1
     },
     {
-      "id": "habit_tree",
-      "slug": "habit_tree",
-      "name": "Sakura Habit Tree",
-      "summary": "100-blossom bonsai tracker · Pot storage vault",
+      "id": "vipaka",
+      "slug": "vipaka",
+      "name": "Sakura Vipaka",
+      "summary": "100-day multi-habit sakura bonsai · crater-free clamshell foliage, 4-quad bento pot vault & sleeping kitsune",
       "category": "Decor",
       "inDeck": false,
-      "dimensions": "16.8 × 12.9 × 17.7 cm",
-      "filamentGrams": 215.0,
+      "dimensions": "16.0 × 11.6 × 16.9 cm",
+      "filamentGrams": 226.3,
       "filamentRatePerKg": 1350,
-      "printHours": 9.8,
+      "printHours": 9.0,
       "plateSwaps": 6,
-      "assemblyMins": 15,
+      "assemblyMins": 18,
       "paintingMins": 0,
       "batchSize": 1,
       "bom": [
@@ -407,68 +407,80 @@
       ],
       "media": [
         {
-          "url": "/media/habit_tree/previews/studio_hero_bloom.png",
+          "url": "/media/vipaka/previews/studio_hero_bloom.png",
           "label": "Full Bloom",
           "kind": "render",
           "isDiagnostic": false
         },
         {
-          "url": "/media/habit_tree/previews/studio_day0_bare.png",
-          "label": "Day 0",
+          "url": "/media/vipaka/previews/studio_multihabit_bloom.png",
+          "label": "Multi-Habit Colors",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/vipaka/previews/studio_day0_bare.png",
+          "label": "Day 0 Bare Bonsai",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/vipaka/previews/studio_sanctuary_closeup.png",
+          "label": "Kitsune Sanctuary",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/vipaka/previews/studio_bento_vault.png",
+          "label": "4-Quad Bento Vault",
           "kind": "render",
           "isDiagnostic": false
         }
       ],
       "excludedMedia": [
-        "/media/habit_tree/previews/studio_exploded_assembly.png"
+        "/media/vipaka/previews/studio_exploded_assembly.png"
       ],
       "variants": [],
       "scannedParts": [
         {
           "file": "bonsai_trunk.stl",
-          "solidCm3": 29.37,
-          "areaCm2": 147.15,
-          "estGrams": 19.4
+          "solidCm3": 34.18,
+          "areaCm2": 161.2,
+          "estGrams": 20.6
         },
         {
           "file": "canopy_pads.stl",
-          "solidCm3": 204.36,
-          "areaCm2": 409.35,
-          "estGrams": 76.8
+          "solidCm3": 188.34,
+          "areaCm2": 638.5,
+          "estGrams": 98.9
         },
         {
           "file": "garden_stones.stl",
-          "solidCm3": 8.73,
-          "areaCm2": 31.53,
-          "estGrams": 4.6
+          "solidCm3": 8.02,
+          "areaCm2": 29.8,
+          "estGrams": 5.3
         },
         {
           "file": "moss_lid.stl",
-          "solidCm3": 78.03,
-          "areaCm2": 214.88,
-          "estGrams": 34.9
+          "solidCm3": 81.64,
+          "areaCm2": 221.4,
+          "estGrams": 37.7
         },
         {
           "file": "pot_base.stl",
-          "solidCm3": 122.55,
-          "areaCm2": 384.2,
-          "estGrams": 59.2
+          "solidCm3": 66.17,
+          "areaCm2": 318.4,
+          "estGrams": 51.1
         },
         {
           "file": "sakura_blossom.stl",
-          "solidCm3": 0.13,
-          "areaCm2": 2.31,
-          "estGrams": 0.2
-        },
-        {
-          "file": "sakura_blossom_tslot.stl",
-          "solidCm3": 0.13,
-          "areaCm2": 2.3,
-          "estGrams": 0.2
+          "solidCm3": 0.11,
+          "areaCm2": 2.24,
+          "estGrams": 0.13
         }
       ],
-      "scannedGrams": 195.3,
-      "scannedPrintHours": 9.7
+      "scannedGrams": 226.3,
+      "scannedPrintHours": 9.0
     },
     {
       "id": "bbmp_signboard",
@@ -1207,6 +1219,2015 @@
       ],
       "scannedGrams": 265.7,
       "scannedPrintHours": 12.6
+    },
+    {
+      "id": "a1_portal_sentinel",
+      "slug": "a1_portal_sentinel",
+      "name": "A1 Portal Sentinel",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 169.9,
+      "filamentRatePerKg": 1350,
+      "printHours": 8.1,
+      "plateSwaps": 3,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "a1_crossflow_fan_duct.stl",
+          "solidCm3": 80.63,
+          "areaCm2": 478.54,
+          "estGrams": 60.4
+        },
+        {
+          "file": "z_column_standoff_arm.stl",
+          "solidCm3": 113.48,
+          "areaCm2": 175.58,
+          "estGrams": 37.8
+        },
+        {
+          "file": "z_frame_portal_blade.stl",
+          "solidCm3": 226.36,
+          "areaCm2": 311.98,
+          "estGrams": 71.7
+        }
+      ],
+      "scannedGrams": 169.9,
+      "scannedPrintHours": 8.1
+    },
+    {
+      "id": "a1_solo_farm_stack",
+      "slug": "a1_solo_farm_stack",
+      "name": "A1 Solo Farm Stack",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 52.3,
+      "filamentRatePerKg": 1350,
+      "printHours": 2.7,
+      "plateSwaps": 3,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/a1_solo_farm_stack/previews/a1_compiler_render.png",
+          "label": "A1 Compiler Render",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/a1_solo_farm_stack/previews/a1_farm_hardware_kit_sheet.png",
+          "label": "A1 Farm Hardware Kit Sheet",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/a1_solo_farm_stack/previews/a1_vision_sentinel_proof.png",
+          "label": "A1 Vision Sentinel Proof",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/a1_solo_farm_stack/previews/yuzu_3mf_plates_sheet.png",
+          "label": "Yuzu 3Mf Plates Sheet",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "a1_front_catch_chute_brackets.stl",
+          "solidCm3": 18.91,
+          "areaCm2": 112.57,
+          "estGrams": 14.2
+        },
+        {
+          "file": "a1_gantry_plow_shoe.stl",
+          "solidCm3": 20.03,
+          "areaCm2": 103.06,
+          "estGrams": 13.5
+        },
+        {
+          "file": "a1_z_column_darkfield_cam_mount.stl",
+          "solidCm3": 44.98,
+          "areaCm2": 171.04,
+          "estGrams": 24.6
+        }
+      ],
+      "scannedGrams": 52.3,
+      "scannedPrintHours": 2.7
+    },
+    {
+      "id": "acacia_epaper_almanac",
+      "slug": "acacia_epaper_almanac",
+      "name": "Acacia Epaper Almanac",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 80.6,
+      "filamentRatePerKg": 1350,
+      "printHours": 4.0,
+      "plateSwaps": 3,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/acacia_epaper_almanac/previews/studio_render.png",
+          "label": "Studio Render",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "almanac_deck_cradle.stl",
+          "solidCm3": 113.77,
+          "areaCm2": 381.94,
+          "estGrams": 57.4
+        },
+        {
+          "file": "epaper_bezel_placard.stl",
+          "solidCm3": 31.02,
+          "areaCm2": 151.61,
+          "estGrams": 20.2
+        },
+        {
+          "file": "wake_pebble_half.stl",
+          "solidCm3": 4.74,
+          "areaCm2": 22.53,
+          "estGrams": 3.0
+        }
+      ],
+      "scannedGrams": 80.6,
+      "scannedPrintHours": 4.0
+    },
+    {
+      "id": "acacia_vinyl_gramophone",
+      "slug": "acacia_vinyl_gramophone",
+      "name": "Acacia Vinyl Gramophone",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 141.7,
+      "filamentRatePerKg": 1350,
+      "printHours": 7.0,
+      "plateSwaps": 5,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/acacia_vinyl_gramophone/previews/studio_render.png",
+          "label": "Studio Render",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "base_collet_ring.stl",
+          "solidCm3": 47.46,
+          "areaCm2": 231.8,
+          "estGrams": 30.8
+        },
+        {
+          "file": "exponential_petal_horn.stl",
+          "solidCm3": 33.16,
+          "areaCm2": 333.8,
+          "estGrams": 37.8
+        },
+        {
+          "file": "movement_clamp_bridge.stl",
+          "solidCm3": 129.35,
+          "areaCm2": 385.75,
+          "estGrams": 60.7
+        },
+        {
+          "file": "nfc_vinyl_platter.stl",
+          "solidCm3": 6.11,
+          "areaCm2": 37.54,
+          "estGrams": 4.7
+        },
+        {
+          "file": "stamp_jig_vinyl_label.stl",
+          "solidCm3": 9.98,
+          "areaCm2": 61.23,
+          "estGrams": 7.7
+        }
+      ],
+      "scannedGrams": 141.7,
+      "scannedPrintHours": 7.0
+    },
+    {
+      "id": "bambu_a1_peel_farm",
+      "slug": "bambu_a1_peel_farm",
+      "name": "Bambu A1 Peel Farm",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 159.2,
+      "filamentRatePerKg": 1350,
+      "printHours": 7.7,
+      "plateSwaps": 4,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/bambu_a1_peel_farm/previews/a1_cv_guard_proof.png",
+          "label": "A1 Cv Guard Proof",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/bambu_a1_peel_farm/previews/peel_3mf_plates_sheet.png",
+          "label": "Peel 3Mf Plates Sheet",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/bambu_a1_peel_farm/previews/pei_flex_kinematics.png",
+          "label": "Pei Flex Kinematics",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/bambu_a1_peel_farm/previews/studio_render.png",
+          "label": "Studio Render",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "a1_cam_led_frame_clip.stl",
+          "solidCm3": 23.63,
+          "areaCm2": 107.16,
+          "estGrams": 14.6
+        },
+        {
+          "file": "pei_arch_peel_ramp.stl",
+          "solidCm3": 137.8,
+          "areaCm2": 389.17,
+          "estGrams": 62.5
+        },
+        {
+          "file": "pei_arch_peel_ramp_left.stl",
+          "solidCm3": 90.27,
+          "areaCm2": 256.93,
+          "estGrams": 41.2
+        },
+        {
+          "file": "pei_arch_peel_ramp_right.stl",
+          "solidCm3": 89.08,
+          "areaCm2": 256.93,
+          "estGrams": 40.9
+        }
+      ],
+      "scannedGrams": 159.2,
+      "scannedPrintHours": 7.7
+    },
+    {
+      "id": "banyan_root_propagator",
+      "slug": "banyan_root_propagator",
+      "name": "Banyan Root Propagator",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 83.4,
+      "filamentRatePerKg": 1350,
+      "printHours": 4.2,
+      "plateSwaps": 3,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/banyan_root_propagator/previews/studio_render.png",
+          "label": "Studio Render",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "banyan_arch_vessel.stl",
+          "solidCm3": 212.67,
+          "areaCm2": 335.97,
+          "estGrams": 71.4
+        },
+        {
+          "file": "bayonet_puck_cap.stl",
+          "solidCm3": 4.2,
+          "areaCm2": 38.38,
+          "estGrams": 4.4
+        },
+        {
+          "file": "hydrophobic_drip_collar.stl",
+          "solidCm3": 6.99,
+          "areaCm2": 65.91,
+          "estGrams": 7.6
+        }
+      ],
+      "scannedGrams": 83.4,
+      "scannedPrintHours": 4.2
+    },
+    {
+      "id": "baya_nest_lamp",
+      "slug": "baya_nest_lamp",
+      "name": "Baya Nest Lamp",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 143.2,
+      "filamentRatePerKg": 1350,
+      "printHours": 7.6,
+      "plateSwaps": 9,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/baya_nest_lamp/previews/baya_3mf_plates_sheet.png",
+          "label": "Baya 3Mf Plates Sheet",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/baya_nest_lamp/previews/baya_carton_pack.png",
+          "label": "Baya Carton Pack",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/baya_nest_lamp/previews/baya_vision_sentinel_proof.png",
+          "label": "Baya Vision Sentinel Proof",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/baya_nest_lamp/previews/bird_and_nest_closeup.png",
+          "label": "Bird And Nest Closeup",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "acacia_pebble_plinth.stl",
+          "solidCm3": 200.97,
+          "areaCm2": 351.17,
+          "estGrams": 70.7
+        },
+        {
+          "file": "baya_arch_bough.stl",
+          "solidCm3": 25.92,
+          "areaCm2": 111.58,
+          "estGrams": 15.4
+        },
+        {
+          "file": "baya_beak_cassette.stl",
+          "solidCm3": 1.55,
+          "areaCm2": 21.74,
+          "estGrams": 1.9
+        },
+        {
+          "file": "baya_bird_beak.stl",
+          "solidCm3": 0.14,
+          "areaCm2": 1.78,
+          "estGrams": 0.2
+        },
+        {
+          "file": "baya_bird_belly.stl",
+          "solidCm3": 0.18,
+          "areaCm2": 2.23,
+          "estGrams": 0.2
+        },
+        {
+          "file": "baya_bird_body.stl",
+          "solidCm3": 9.8,
+          "areaCm2": 27.83,
+          "estGrams": 4.5
+        },
+        {
+          "file": "baya_custom_plaque.stl",
+          "solidCm3": 0.62,
+          "areaCm2": 5.04,
+          "estGrams": 0.6
+        },
+        {
+          "file": "baya_nest_cap.stl",
+          "solidCm3": 24.58,
+          "areaCm2": 85.36,
+          "estGrams": 12.7
+        },
+        {
+          "file": "baya_woven_nest.stl",
+          "solidCm3": 47.67,
+          "areaCm2": 296.76,
+          "estGrams": 37.0
+        }
+      ],
+      "scannedGrams": 143.2,
+      "scannedPrintHours": 7.6
+    },
+    {
+      "id": "chai_ketli_lamp",
+      "slug": "chai_ketli_lamp",
+      "name": "Chai Ketli Lamp",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 143.7,
+      "filamentRatePerKg": 1350,
+      "printHours": 7.5,
+      "plateSwaps": 8,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/chai_ketli_lamp/previews/chai_3mf_plates_sheet.png",
+          "label": "Chai 3Mf Plates Sheet",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/chai_ketli_lamp/previews/chai_carton_pack.png",
+          "label": "Chai Carton Pack",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/chai_ketli_lamp/previews/chai_vision_sentinel_proof.png",
+          "label": "Chai Vision Sentinel Proof",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/chai_ketli_lamp/previews/exploded_cad_render.png",
+          "label": "Exploded Cad Render",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "chai_custom_plaque.stl",
+          "solidCm3": 0.97,
+          "areaCm2": 11.04,
+          "estGrams": 1.2
+        },
+        {
+          "file": "chai_froth_diffuser.stl",
+          "solidCm3": 8.24,
+          "areaCm2": 65.82,
+          "estGrams": 7.8
+        },
+        {
+          "file": "chai_ketli_body.stl",
+          "solidCm3": 77.6,
+          "areaCm2": 168.47,
+          "estGrams": 30.4
+        },
+        {
+          "file": "chai_ketli_handle.stl",
+          "solidCm3": 0.85,
+          "areaCm2": 7.68,
+          "estGrams": 0.9
+        },
+        {
+          "file": "chai_ketli_lid.stl",
+          "solidCm3": 14.47,
+          "areaCm2": 42.57,
+          "estGrams": 6.7
+        },
+        {
+          "file": "chai_kulhad_cup.stl",
+          "solidCm3": 58.76,
+          "areaCm2": 201.57,
+          "estGrams": 30.0
+        },
+        {
+          "file": "chai_pour_stream.stl",
+          "solidCm3": 4.38,
+          "areaCm2": 28.64,
+          "estGrams": 3.5
+        },
+        {
+          "file": "slate_plinth_cradle.stl",
+          "solidCm3": 182.43,
+          "areaCm2": 309.06,
+          "estGrams": 63.2
+        }
+      ],
+      "scannedGrams": 143.7,
+      "scannedPrintHours": 7.5
+    },
+    {
+      "id": "darshini_storefront_lantern",
+      "slug": "darshini_storefront_lantern",
+      "name": "Darshini Storefront Lantern",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 126.2,
+      "filamentRatePerKg": 1350,
+      "printHours": 6.3,
+      "plateSwaps": 5,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/darshini_storefront_lantern/previews/studio_hero_glow.png",
+          "label": "Studio Hero Glow",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "a1_grazing_cam_mount.stl",
+          "solidCm3": 20.51,
+          "areaCm2": 82.61,
+          "estGrams": 11.7
+        },
+        {
+          "file": "a1_r250_pei_lifter.stl",
+          "solidCm3": 13.42,
+          "areaCm2": 57.16,
+          "estGrams": 7.9
+        },
+        {
+          "file": "coaster_cradle_frame.stl",
+          "solidCm3": 32.72,
+          "areaCm2": 215.19,
+          "estGrams": 26.5
+        },
+        {
+          "file": "facade_shell.stl",
+          "solidCm3": 151.41,
+          "areaCm2": 444.05,
+          "estGrams": 70.3
+        },
+        {
+          "file": "mangalore_awning.stl",
+          "solidCm3": 20.88,
+          "areaCm2": 62.26,
+          "estGrams": 9.8
+        }
+      ],
+      "scannedGrams": 126.2,
+      "scannedPrintHours": 6.3
+    },
+    {
+      "id": "gavaksha_sanctuary",
+      "slug": "gavaksha_sanctuary",
+      "name": "Gavaksha Sanctuary",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 288.9,
+      "filamentRatePerKg": 1350,
+      "printHours": 14.1,
+      "plateSwaps": 8,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/gavaksha_sanctuary/previews/komorebi_day_night_hero.png",
+          "label": "Komorebi Day Night Hero",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/gavaksha_sanctuary/previews/studio_suite_render.png",
+          "label": "Studio Suite Render",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "a1_r230_peel_guide.stl",
+          "solidCm3": 96.03,
+          "areaCm2": 195.66,
+          "estGrams": 36.4
+        },
+        {
+          "file": "arch_frame.stl",
+          "solidCm3": 138.36,
+          "areaCm2": 471.69,
+          "estGrams": 70.5
+        },
+        {
+          "file": "key_rocker.stl",
+          "solidCm3": 27.0,
+          "areaCm2": 107.91,
+          "estGrams": 15.3
+        },
+        {
+          "file": "komorebi_cork_base.stl",
+          "solidCm3": 171.95,
+          "areaCm2": 437.84,
+          "estGrams": 73.5
+        },
+        {
+          "file": "komorebi_jaali_dome.stl",
+          "solidCm3": 57.71,
+          "areaCm2": 509.24,
+          "estGrams": 59.0
+        },
+        {
+          "file": "lotus_vault.stl",
+          "solidCm3": 10.99,
+          "areaCm2": 70.08,
+          "estGrams": 8.7
+        },
+        {
+          "file": "pinch_sprue_cassette.stl",
+          "solidCm3": 6.37,
+          "areaCm2": 86.26,
+          "estGrams": 7.9
+        },
+        {
+          "file": "snap_stencil_mask.stl",
+          "solidCm3": 14.22,
+          "areaCm2": 196.91,
+          "estGrams": 17.6
+        }
+      ],
+      "scannedGrams": 288.9,
+      "scannedPrintHours": 14.1
+    },
+    {
+      "id": "hampi_living_ruin",
+      "slug": "hampi_living_ruin",
+      "name": "Hampi Living Ruin",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 137.1,
+      "filamentRatePerKg": 1350,
+      "printHours": 7.0,
+      "plateSwaps": 6,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/hampi_living_ruin/previews/hampi_a1_3mf_plates.png",
+          "label": "Hampi A1 3Mf Plates",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/hampi_living_ruin/previews/hampi_carton_pack.png",
+          "label": "Hampi Carton Pack",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/hampi_living_ruin/previews/hampi_craft_closeup.png",
+          "label": "Hampi Craft Closeup",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/hampi_living_ruin/previews/hampi_cv_sentinel_proof.png",
+          "label": "Hampi Cv Sentinel Proof",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "a1_r230_peel_guide.stl",
+          "solidCm3": 92.87,
+          "areaCm2": 175.53,
+          "estGrams": 33.9
+        },
+        {
+          "file": "moss_paver_pinch_sprue.stl",
+          "solidCm3": 7.48,
+          "areaCm2": 112.32,
+          "estGrams": 9.3
+        },
+        {
+          "file": "sandstone_arch_colonnade.stl",
+          "solidCm3": 62.56,
+          "areaCm2": 159.42,
+          "estGrams": 26.8
+        },
+        {
+          "file": "sandstone_broken_column.stl",
+          "solidCm3": 2.46,
+          "areaCm2": 14.8,
+          "estGrams": 1.9
+        },
+        {
+          "file": "shrine_deepam_hood.stl",
+          "solidCm3": 31.55,
+          "areaCm2": 107.8,
+          "estGrams": 16.1
+        },
+        {
+          "file": "terracotta_baoli_plinth.stl",
+          "solidCm3": 122.86,
+          "areaCm2": 276.94,
+          "estGrams": 49.1
+        }
+      ],
+      "scannedGrams": 137.1,
+      "scannedPrintHours": 7.0
+    },
+    {
+      "id": "kagaz_kashti_lamp",
+      "slug": "kagaz_kashti_lamp",
+      "name": "Kagaz Kashti Lamp",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 74.6,
+      "filamentRatePerKg": 1350,
+      "printHours": 4.0,
+      "plateSwaps": 5,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/kagaz_kashti_lamp/previews/studio_daylight.png",
+          "label": "Studio Daylight",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/kagaz_kashti_lamp/previews/studio_daylight_alt.png",
+          "label": "Studio Daylight Alt",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/kagaz_kashti_lamp/previews/studio_render.png",
+          "label": "Studio Render",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "a1_frame_bumper.stl",
+          "solidCm3": 19.51,
+          "areaCm2": 63.07,
+          "estGrams": 9.6
+        },
+        {
+          "file": "base_slate_ring.stl",
+          "solidCm3": 47.71,
+          "areaCm2": 259.96,
+          "estGrams": 33.5
+        },
+        {
+          "file": "boat_keel_plug.stl",
+          "solidCm3": 0.97,
+          "areaCm2": 7.68,
+          "estGrams": 0.9
+        },
+        {
+          "file": "origami_boat.stl",
+          "solidCm3": 6.52,
+          "areaCm2": 39.31,
+          "estGrams": 4.9
+        },
+        {
+          "file": "ripple_puddle_deck.stl",
+          "solidCm3": 47.04,
+          "areaCm2": 179.03,
+          "estGrams": 25.7
+        }
+      ],
+      "scannedGrams": 74.6,
+      "scannedPrintHours": 4.0
+    },
+    {
+      "id": "kalachakra_desk_sanctuary",
+      "slug": "kalachakra_desk_sanctuary",
+      "name": "Kalachakra Desk Sanctuary",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 101.5,
+      "filamentRatePerKg": 1350,
+      "printHours": 4.9,
+      "plateSwaps": 2,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/kalachakra_desk_sanctuary/previews/studio_hero_kalachakra.png",
+          "label": "Studio Hero Kalachakra",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "fluted_rotor_dish.stl",
+          "solidCm3": 101.86,
+          "areaCm2": 281.57,
+          "estGrams": 45.7
+        },
+        {
+          "file": "sanctuary_base.stl",
+          "solidCm3": 145.74,
+          "areaCm2": 302.98,
+          "estGrams": 55.8
+        }
+      ],
+      "scannedGrams": 101.5,
+      "scannedPrintHours": 4.9
+    },
+    {
+      "id": "kaveri_custom_system",
+      "slug": "kaveri_custom_system",
+      "name": "Kaveri Custom System",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 231.5,
+      "filamentRatePerKg": 1350,
+      "printHours": 11.6,
+      "plateSwaps": 9,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/kaveri_custom_system/previews/diagnostic_pinion_9t.png",
+          "label": "Diagnostic Pinion 9T",
+          "kind": "render",
+          "isDiagnostic": true
+        },
+        {
+          "url": "/media/kaveri_custom_system/previews/diagnostic_sahyadri_frame.png",
+          "label": "Diagnostic Sahyadri Frame",
+          "kind": "render",
+          "isDiagnostic": true
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "a1_front_pei_peel_wedge.stl",
+          "solidCm3": 28.29,
+          "areaCm2": 94.84,
+          "estGrams": 14.3
+        },
+        {
+          "file": "a1_zpillar_optiguard_mount.stl",
+          "solidCm3": 29.37,
+          "areaCm2": 101.08,
+          "estGrams": 15.1
+        },
+        {
+          "file": "kaveri_n20_pinion_9t.stl",
+          "solidCm3": 0.81,
+          "areaCm2": 5.96,
+          "estGrams": 0.7
+        },
+        {
+          "file": "kaveri_rotor_ring.stl",
+          "solidCm3": 39.96,
+          "areaCm2": 183.67,
+          "estGrams": 24.9
+        },
+        {
+          "file": "kaveri_service_cap.stl",
+          "solidCm3": 26.77,
+          "areaCm2": 84.3,
+          "estGrams": 13.0
+        },
+        {
+          "file": "kaveri_wave_basin.stl",
+          "solidCm3": 195.34,
+          "areaCm2": 412.34,
+          "estGrams": 75.4
+        },
+        {
+          "file": "sahyadri_stock_frame.stl",
+          "solidCm3": 107.58,
+          "areaCm2": 280.29,
+          "estGrams": 46.6
+        },
+        {
+          "file": "sahyadri_tile_bengaluru_stars.stl",
+          "solidCm3": 21.77,
+          "areaCm2": 180.7,
+          "estGrams": 21.2
+        },
+        {
+          "file": "sahyadri_tile_kudremukh_ridge.stl",
+          "solidCm3": 17.48,
+          "areaCm2": 180.12,
+          "estGrams": 20.3
+        }
+      ],
+      "scannedGrams": 231.5,
+      "scannedPrintHours": 11.6
+    },
+    {
+      "id": "kitab_ghar_lantern",
+      "slug": "kitab_ghar_lantern",
+      "name": "Kitab Ghar Lantern",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 288.2,
+      "filamentRatePerKg": 1350,
+      "printHours": 13.8,
+      "plateSwaps": 6,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/kitab_ghar_lantern/previews/studio_render.png",
+          "label": "Studio Render",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "cottage_gable_roof.stl",
+          "solidCm3": 102.27,
+          "areaCm2": 435.47,
+          "estGrams": 60.3
+        },
+        {
+          "file": "cottage_valet_base.stl",
+          "solidCm3": 253.1,
+          "areaCm2": 520.54,
+          "estGrams": 96.5
+        },
+        {
+          "file": "peel_wedge_r230_left.stl",
+          "solidCm3": 55.16,
+          "areaCm2": 144.88,
+          "estGrams": 24.0
+        },
+        {
+          "file": "peel_wedge_r230_right.stl",
+          "solidCm3": 55.16,
+          "areaCm2": 144.88,
+          "estGrams": 24.0
+        },
+        {
+          "file": "ridge_mag_plunger.stl",
+          "solidCm3": 14.97,
+          "areaCm2": 82.72,
+          "estGrams": 10.6
+        },
+        {
+          "file": "soma_v2_sail.stl",
+          "solidCm3": 183.26,
+          "areaCm2": 407.96,
+          "estGrams": 72.8
+        }
+      ],
+      "scannedGrams": 288.2,
+      "scannedPrintHours": 13.8
+    },
+    {
+      "id": "morning_glory_gramophone",
+      "slug": "morning_glory_gramophone",
+      "name": "Morning Glory Gramophone",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 151.7,
+      "filamentRatePerKg": 1350,
+      "printHours": 7.5,
+      "plateSwaps": 5,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/morning_glory_gramophone/previews/studio_moonflower_day.png",
+          "label": "Studio Moonflower Day",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/morning_glory_gramophone/previews/studio_moonflower_night.png",
+          "label": "Studio Moonflower Night",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/morning_glory_gramophone/previews/studio_profile.png",
+          "label": "Studio Profile",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/morning_glory_gramophone/previews/studio_render.png",
+          "label": "Studio Render",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "base_collet_ring.stl",
+          "solidCm3": 47.46,
+          "areaCm2": 231.8,
+          "estGrams": 30.8
+        },
+        {
+          "file": "cabinet_bridge.stl",
+          "solidCm3": 90.97,
+          "areaCm2": 432.21,
+          "estGrams": 57.9
+        },
+        {
+          "file": "morning_glory_bloom.stl",
+          "solidCm3": 36.06,
+          "areaCm2": 486.92,
+          "estGrams": 44.7
+        },
+        {
+          "file": "record_platter.stl",
+          "solidCm3": 7.94,
+          "areaCm2": 53.75,
+          "estGrams": 6.6
+        },
+        {
+          "file": "swan_neck.stl",
+          "solidCm3": 12.21,
+          "areaCm2": 99.45,
+          "estGrams": 11.7
+        }
+      ],
+      "scannedGrams": 151.7,
+      "scannedPrintHours": 7.5
+    },
+    {
+      "id": "morning_glory_gramophone_v4",
+      "slug": "morning_glory_gramophone_v4",
+      "name": "Morning Glory Gramophone V4",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 240.3,
+      "filamentRatePerKg": 1350,
+      "printHours": 11.9,
+      "plateSwaps": 8,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/morning_glory_gramophone_v4/previews/label_render_texture.png",
+          "label": "Label Render Texture",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/morning_glory_gramophone_v4/previews/label_samples.png",
+          "label": "Label Samples",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/morning_glory_gramophone_v4/previews/label_sheet_A4_preview.png",
+          "label": "Label Sheet A4 Preview",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/morning_glory_gramophone_v4/previews/studio_closeup_joint.png",
+          "label": "Studio Closeup Joint",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "cabinet_drum.stl",
+          "solidCm3": 40.99,
+          "areaCm2": 323.39,
+          "estGrams": 38.3
+        },
+        {
+          "file": "heart_leaf_clip.stl",
+          "solidCm3": 1.36,
+          "areaCm2": 19.82,
+          "estGrams": 1.7
+        },
+        {
+          "file": "ipomoea_bloom.stl",
+          "solidCm3": 31.65,
+          "areaCm2": 450.3,
+          "estGrams": 39.2
+        },
+        {
+          "file": "model_ipomoea.stl",
+          "solidCm3": 92.1,
+          "areaCm2": 932.23,
+          "estGrams": 105.6
+        },
+        {
+          "file": "morning_glory_bloom.stl",
+          "solidCm3": 31.47,
+          "areaCm2": 448.53,
+          "estGrams": 39.0
+        },
+        {
+          "file": "record_platter.stl",
+          "solidCm3": 6.77,
+          "areaCm2": 45.91,
+          "estGrams": 5.6
+        },
+        {
+          "file": "swan_neck.stl",
+          "solidCm3": 10.2,
+          "areaCm2": 83.05,
+          "estGrams": 9.8
+        },
+        {
+          "file": "tonearm.stl",
+          "solidCm3": 1.14,
+          "areaCm2": 9.76,
+          "estGrams": 1.1
+        }
+      ],
+      "scannedGrams": 240.3,
+      "scannedPrintHours": 11.9
+    },
+    {
+      "id": "nocturne_storefront_cloche",
+      "slug": "nocturne_storefront_cloche",
+      "name": "Nocturne Storefront Cloche",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 80.0,
+      "filamentRatePerKg": 1350,
+      "printHours": 4.1,
+      "plateSwaps": 4,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/nocturne_storefront_cloche/previews/studio_render.png",
+          "label": "Studio Render",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "coaster_collar_plinth.stl",
+          "solidCm3": 61.59,
+          "areaCm2": 233.87,
+          "estGrams": 33.6
+        },
+        {
+          "file": "sculpted_facade_shell.stl",
+          "solidCm3": 49.68,
+          "areaCm2": 360.69,
+          "estGrams": 43.5
+        },
+        {
+          "file": "sign_ink_stamp_jig.stl",
+          "solidCm3": 0.82,
+          "areaCm2": 10.95,
+          "estGrams": 1.0
+        },
+        {
+          "file": "snap_awning_and_sign.stl",
+          "solidCm3": 1.95,
+          "areaCm2": 16.53,
+          "estGrams": 1.9
+        }
+      ],
+      "scannedGrams": 80.0,
+      "scannedPrintHours": 4.1
+    },
+    {
+      "id": "photo_booth",
+      "slug": "photo_booth",
+      "name": "Photo Booth",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 289.8,
+      "filamentRatePerKg": 1350,
+      "printHours": 13.7,
+      "plateSwaps": 4,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/photo_booth/previews/diagnostic_android_phone_stand.png",
+          "label": "Diagnostic Android Phone Stand",
+          "kind": "render",
+          "isDiagnostic": true
+        },
+        {
+          "url": "/media/photo_booth/previews/diagnostic_booth_clips_kit.png",
+          "label": "Diagnostic Booth Clips Kit",
+          "kind": "render",
+          "isDiagnostic": true
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "android_phone_stand.stl",
+          "solidCm3": 212.67,
+          "areaCm2": 467.13,
+          "estGrams": 83.9
+        },
+        {
+          "file": "booth_clips_kit.stl",
+          "solidCm3": 28.48,
+          "areaCm2": 323.63,
+          "estGrams": 35.3
+        },
+        {
+          "file": "platter_top.stl",
+          "solidCm3": 117.98,
+          "areaCm2": 628.57,
+          "estGrams": 81.6
+        },
+        {
+          "file": "turntable_base.stl",
+          "solidCm3": 121.87,
+          "areaCm2": 699.08,
+          "estGrams": 89.0
+        }
+      ],
+      "scannedGrams": 289.8,
+      "scannedPrintHours": 13.7
+    },
+    {
+      "id": "sahyadri_relief_plaque",
+      "slug": "sahyadri_relief_plaque",
+      "name": "Sahyadri Relief Plaque",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 95.9,
+      "filamentRatePerKg": 1350,
+      "printHours": 4.8,
+      "plateSwaps": 4,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/sahyadri_relief_plaque/previews/hero_day.png",
+          "label": "Hero Day",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/sahyadri_relief_plaque/previews/hero_day_mono_moss.png",
+          "label": "Hero Day Mono Moss",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/sahyadri_relief_plaque/previews/hero_day_moss_charcoal.png",
+          "label": "Hero Day Moss Charcoal",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/sahyadri_relief_plaque/previews/hero_day_moss_espresso.png",
+          "label": "Hero Day Moss Espresso",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "sahyadri_desk_easel.stl",
+          "solidCm3": 18.4,
+          "areaCm2": 106.67,
+          "estGrams": 13.5
+        },
+        {
+          "file": "sahyadri_edge_lit_frame.stl",
+          "solidCm3": 89.97,
+          "areaCm2": 297.96,
+          "estGrams": 45.0
+        },
+        {
+          "file": "sahyadri_relief_tile_kudremukh.stl",
+          "solidCm3": 84.05,
+          "areaCm2": 227.46,
+          "estGrams": 37.2
+        },
+        {
+          "file": "sahyadri_turn_button.stl",
+          "solidCm3": 0.19,
+          "areaCm2": 2.76,
+          "estGrams": 0.2
+        }
+      ],
+      "scannedGrams": 95.9,
+      "scannedPrintHours": 4.8
+    },
+    {
+      "id": "shila_cairn_lamp",
+      "slug": "shila_cairn_lamp",
+      "name": "Shila Cairn Lamp",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 186.9,
+      "filamentRatePerKg": 1350,
+      "printHours": 9.5,
+      "plateSwaps": 8,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/shila_cairn_lamp/previews/carton_pack_view.png",
+          "label": "Carton Pack View",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/shila_cairn_lamp/previews/shila_a1_3mf_plates.png",
+          "label": "Shila A1 3Mf Plates",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/shila_cairn_lamp/previews/shila_daylight_hero.png",
+          "label": "Shila Daylight Hero",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/shila_cairn_lamp/previews/shila_twilight_glow.png",
+          "label": "Shila Twilight Glow",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "cairn_dock_saddle.stl",
+          "solidCm3": 30.38,
+          "areaCm2": 98.6,
+          "estGrams": 15.0
+        },
+        {
+          "file": "shila_1_lower.stl",
+          "solidCm3": 58.22,
+          "areaCm2": 141.45,
+          "estGrams": 24.2
+        },
+        {
+          "file": "shila_1_upper.stl",
+          "solidCm3": 60.42,
+          "areaCm2": 143.43,
+          "estGrams": 24.8
+        },
+        {
+          "file": "shila_2_lower.stl",
+          "solidCm3": 39.38,
+          "areaCm2": 105.34,
+          "estGrams": 17.3
+        },
+        {
+          "file": "shila_2_upper.stl",
+          "solidCm3": 40.36,
+          "areaCm2": 104.74,
+          "estGrams": 17.4
+        },
+        {
+          "file": "shila_3_lower.stl",
+          "solidCm3": 24.62,
+          "areaCm2": 77.49,
+          "estGrams": 11.9
+        },
+        {
+          "file": "shila_3_upper.stl",
+          "solidCm3": 30.46,
+          "areaCm2": 71.37,
+          "estGrams": 12.4
+        },
+        {
+          "file": "slate_plinth_base.stl",
+          "solidCm3": 125.34,
+          "areaCm2": 427.64,
+          "estGrams": 63.9
+        }
+      ],
+      "scannedGrams": 186.9,
+      "scannedPrintHours": 9.5
+    },
+    {
+      "id": "sloth_hydro_lamp",
+      "slug": "sloth_hydro_lamp",
+      "name": "Sloth Hydro Lamp",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 70.1,
+      "filamentRatePerKg": 1350,
+      "printHours": 3.9,
+      "plateSwaps": 6,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/sloth_hydro_lamp/previews/hugger_face.png",
+          "label": "Hugger Face",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/sloth_hydro_lamp/previews/hugger_front34.png",
+          "label": "Hugger Front34",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/sloth_hydro_lamp/previews/hugger_inuse_day.png",
+          "label": "Hugger Inuse Day",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/sloth_hydro_lamp/previews/hugger_side.png",
+          "label": "Hugger Side",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "loris_face_mask.stl",
+          "solidCm3": 0.79,
+          "areaCm2": 8.89,
+          "estGrams": 1.0
+        },
+        {
+          "file": "loris_hugger.stl",
+          "solidCm3": 27.81,
+          "areaCm2": 91.21,
+          "estGrams": 13.8
+        },
+        {
+          "file": "sloth_face_mask.stl",
+          "solidCm3": 0.88,
+          "areaCm2": 9.59,
+          "estGrams": 1.1
+        },
+        {
+          "file": "sloth_hugger.stl",
+          "solidCm3": 41.7,
+          "areaCm2": 116.72,
+          "estGrams": 18.8
+        },
+        {
+          "file": "twist_cam_puck_cap.stl",
+          "solidCm3": 5.5,
+          "areaCm2": 31.27,
+          "estGrams": 4.0
+        },
+        {
+          "file": "vase_collar.stl",
+          "solidCm3": 72.2,
+          "areaCm2": 189.93,
+          "estGrams": 31.4
+        }
+      ],
+      "scannedGrams": 70.1,
+      "scannedPrintHours": 3.9
+    },
+    {
+      "id": "soma_horizon_lamp",
+      "slug": "soma_horizon_lamp",
+      "name": "Soma Horizon Lamp",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 281.8,
+      "filamentRatePerKg": 1350,
+      "printHours": 13.5,
+      "plateSwaps": 6,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/soma_horizon_lamp/previews/soma_a1_3mf_plates.png",
+          "label": "Soma A1 3Mf Plates",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/soma_horizon_lamp/previews/soma_carton_pack.png",
+          "label": "Soma Carton Pack",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/soma_horizon_lamp/previews/soma_daylight_hero.png",
+          "label": "Soma Daylight Hero",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/soma_horizon_lamp/previews/soma_twilight_glow.png",
+          "label": "Soma Twilight Glow",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "blobguard_a1_mount.stl",
+          "solidCm3": 40.29,
+          "areaCm2": 152.27,
+          "estGrams": 21.9
+        },
+        {
+          "file": "co_molded_emblem.stl",
+          "solidCm3": 2.14,
+          "areaCm2": 11.37,
+          "estGrams": 1.5
+        },
+        {
+          "file": "co_molded_emblem_cassette.stl",
+          "solidCm3": 10.21,
+          "areaCm2": 71.07,
+          "estGrams": 8.6
+        },
+        {
+          "file": "horizon_arch.stl",
+          "solidCm3": 196.16,
+          "areaCm2": 382.71,
+          "estGrams": 72.8
+        },
+        {
+          "file": "kapi_cork_valet.stl",
+          "solidCm3": 321.41,
+          "areaCm2": 575.36,
+          "estGrams": 114.4
+        },
+        {
+          "file": "sensor_plinth.stl",
+          "solidCm3": 155.63,
+          "areaCm2": 354.82,
+          "estGrams": 62.6
+        }
+      ],
+      "scannedGrams": 281.8,
+      "scannedPrintHours": 13.5
+    },
+    {
+      "id": "vanajhoola_branch_lantern",
+      "slug": "vanajhoola_branch_lantern",
+      "name": "Vanajhoola Branch Lantern",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 284.3,
+      "filamentRatePerKg": 1350,
+      "printHours": 14.0,
+      "plateSwaps": 9,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/vanajhoola_branch_lantern/previews/studio_render.png",
+          "label": "Studio Render",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "acorn_endcap.stl",
+          "solidCm3": 1.72,
+          "areaCm2": 10.79,
+          "estGrams": 1.3
+        },
+        {
+          "file": "bell_puck_retainer.stl",
+          "solidCm3": 17.5,
+          "areaCm2": 80.53,
+          "estGrams": 10.9
+        },
+        {
+          "file": "gnarled_vine_arch.stl",
+          "solidCm3": 59.56,
+          "areaCm2": 167.33,
+          "estGrams": 27.0
+        },
+        {
+          "file": "moss_pebble_valet.stl",
+          "solidCm3": 187.14,
+          "areaCm2": 400.64,
+          "estGrams": 72.8
+        },
+        {
+          "file": "peel_wedge_r230_left.stl",
+          "solidCm3": 55.16,
+          "areaCm2": 144.88,
+          "estGrams": 24.0
+        },
+        {
+          "file": "peel_wedge_r230_right.stl",
+          "solidCm3": 55.16,
+          "areaCm2": 144.88,
+          "estGrams": 24.0
+        },
+        {
+          "file": "soma_v2_sail.stl",
+          "solidCm3": 183.26,
+          "areaCm2": 407.96,
+          "estGrams": 72.8
+        },
+        {
+          "file": "woven_bell_shade.stl",
+          "solidCm3": 47.71,
+          "areaCm2": 434.44,
+          "estGrams": 50.1
+        },
+        {
+          "file": "yoke_hanger_arm.stl",
+          "solidCm3": 1.66,
+          "areaCm2": 11.94,
+          "estGrams": 1.4
+        }
+      ],
+      "scannedGrams": 284.3,
+      "scannedPrintHours": 14.0
+    },
+    {
+      "id": "yuzu_capybara_pond_lamp",
+      "slug": "yuzu_capybara_pond_lamp",
+      "name": "Yuzu Capybara Pond Lamp",
+      "summary": "",
+      "category": "Drafts",
+      "inDeck": false,
+      "dimensions": "—",
+      "filamentGrams": 152.2,
+      "filamentRatePerKg": 1350,
+      "printHours": 8.4,
+      "plateSwaps": 12,
+      "assemblyMins": 10,
+      "paintingMins": 0,
+      "batchSize": 1,
+      "bom": [],
+      "price": 799,
+      "swatches": [
+        "matte-cream",
+        "charcoal-slate"
+      ],
+      "media": [
+        {
+          "url": "/media/yuzu_capybara_pond_lamp/previews/capybara_closeup.png",
+          "label": "Capybara Closeup",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/yuzu_capybara_pond_lamp/previews/carton_pack_view.png",
+          "label": "Carton Pack View",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/yuzu_capybara_pond_lamp/previews/custom_onsen_finials.png",
+          "label": "Custom Onsen Finials",
+          "kind": "render",
+          "isDiagnostic": false
+        },
+        {
+          "url": "/media/yuzu_capybara_pond_lamp/previews/hero_daylight.png",
+          "label": "Hero Daylight",
+          "kind": "render",
+          "isDiagnostic": false
+        }
+      ],
+      "excludedMedia": [],
+      "variants": [],
+      "scannedParts": [
+        {
+          "file": "bayonet_puck_retainer.stl",
+          "solidCm3": 12.98,
+          "areaCm2": 89.24,
+          "estGrams": 10.9
+        },
+        {
+          "file": "floating_yuzu_cassette.stl",
+          "solidCm3": 10.61,
+          "areaCm2": 91.0,
+          "estGrams": 10.6
+        },
+        {
+          "file": "floating_yuzu_pair.stl",
+          "solidCm3": 1.97,
+          "areaCm2": 11.07,
+          "estGrams": 1.4
+        },
+        {
+          "file": "lotus_leaf_collar.stl",
+          "solidCm3": 10.04,
+          "areaCm2": 71.54,
+          "estGrams": 8.7
+        },
+        {
+          "file": "lotus_leaf_collar_cassette.stl",
+          "solidCm3": 43.85,
+          "areaCm2": 351.22,
+          "estGrams": 41.5
+        },
+        {
+          "file": "pond_glow_surface.stl",
+          "solidCm3": 17.56,
+          "areaCm2": 169.44,
+          "estGrams": 19.3
+        },
+        {
+          "file": "pond_stone_bowl.stl",
+          "solidCm3": 75.26,
+          "areaCm2": 207.73,
+          "estGrams": 33.7
+        },
+        {
+          "file": "sleepy_capybara.stl",
+          "solidCm3": 34.18,
+          "areaCm2": 67.87,
+          "estGrams": 12.8
+        },
+        {
+          "file": "yuzu_citrus_cap.stl",
+          "solidCm3": 1.74,
+          "areaCm2": 8.36,
+          "estGrams": 1.1
+        },
+        {
+          "file": "yuzu_citrus_cap_cassette.stl",
+          "solidCm3": 8.57,
+          "areaCm2": 63.81,
+          "estGrams": 7.6
+        },
+        {
+          "file": "yuzu_leaf_crown.stl",
+          "solidCm3": 0.22,
+          "areaCm2": 2.85,
+          "estGrams": 0.3
+        },
+        {
+          "file": "yuzu_leaf_crown_cassette.stl",
+          "solidCm3": 3.48,
+          "areaCm2": 57.02,
+          "estGrams": 4.3
+        }
+      ],
+      "scannedGrams": 152.2,
+      "scannedPrintHours": 8.4
     }
   ],
   "orders": []

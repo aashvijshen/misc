@@ -9,7 +9,6 @@
 # Allow tools hierarchy
 !tools/
 !tools/**/
-!tools/habitree/**
 !tools/mapmaker/**
 !tools/showcase/**
 
@@ -18,8 +17,6 @@ projects/musicBox/.venv/
 projects/musicBox/.venv/**
 projects/musicBox/.pytest_cache/
 projects/musicBox/.pytest_cache/**
-tools/habitree/output/
-tools/habitree/output/**
 tools/mapmaker/exports/
 tools/mapmaker/exports/**
 tools/mapmaker/output_*/
