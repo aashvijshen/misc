@@ -9,6 +9,8 @@
 # Allow tools hierarchy
 !tools/
 !tools/**/
+!tools/maker_logo.svg
+!tools/maker_mark.py
 !tools/mapmaker/**
 !tools/showcase/**
 
@@ -34,8 +36,10 @@ tools/mapmaker/**/.cache/**
 !projects/**/*.stl
 !projects/bbmp_signboard/build_bbmp.py
 !projects/bbmp_signboard/sign_customizer.py
+!projects/maker_logo_stamp/maker_logo.svg
 
 # Track root reference guides & .gitignore
+!GEMINI.md
 !IDEA_CATALOG.md
 !POST_PROCESSING_GUIDE.md
 !.gitignore
