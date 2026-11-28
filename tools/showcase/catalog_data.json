@@ -380,15 +380,15 @@
       "id": "vipaka",
       "slug": "vipaka",
       "name": "Sakura Vipaka",
-      "summary": "100-day multi-habit sakura bonsai · crater-free clamshell foliage, 4-quad bento pot vault & sleeping kitsune",
+      "summary": "100-day multi-habit sakura bonsai · chiseled-slate Zen suiban, 4-quad bento vault, 1-piece clouds & sleeping kitsune",
       "category": "Decor",
       "inDeck": false,
       "dimensions": "16.0 × 11.6 × 16.9 cm",
-      "filamentGrams": 226.3,
+      "filamentGrams": 224.2,
       "filamentRatePerKg": 1350,
-      "printHours": 9.0,
+      "printHours": 8.6,
       "plateSwaps": 6,
-      "assemblyMins": 18,
+      "assemblyMins": 5,
       "paintingMins": 0,
       "batchSize": 1,
       "bom": [
@@ -402,7 +402,6 @@
         "sakura-pink",
         "forest-green",
         "earth-brown",
-        "matte-cream",
         "charcoal-slate"
       ],
       "media": [
@@ -432,7 +431,7 @@
         },
         {
           "url": "/media/vipaka/previews/studio_bento_vault.png",
-          "label": "4-Quad Bento Vault",
+          "label": "4-Quad Suiban Vault",
           "kind": "render",
           "isDiagnostic": false
         }
@@ -444,43 +443,43 @@
       "scannedParts": [
         {
           "file": "bonsai_trunk.stl",
-          "solidCm3": 34.18,
-          "areaCm2": 161.2,
-          "estGrams": 20.6
+          "solidCm3": 33.47,
+          "areaCm2": 159.4,
+          "estGrams": 20.0
         },
         {
           "file": "canopy_pads.stl",
-          "solidCm3": 188.34,
-          "areaCm2": 638.5,
-          "estGrams": 98.9
+          "solidCm3": 152.97,
+          "areaCm2": 498.2,
+          "estGrams": 64.5
         },
         {
           "file": "garden_stones.stl",
-          "solidCm3": 8.02,
-          "areaCm2": 29.8,
-          "estGrams": 5.3
+          "solidCm3": 8.21,
+          "areaCm2": 30.2,
+          "estGrams": 5.4
         },
         {
           "file": "moss_lid.stl",
-          "solidCm3": 81.64,
-          "areaCm2": 221.4,
-          "estGrams": 37.7
+          "solidCm3": 120.18,
+          "areaCm2": 268.5,
+          "estGrams": 51.6
         },
         {
           "file": "pot_base.stl",
-          "solidCm3": 66.17,
-          "areaCm2": 318.4,
-          "estGrams": 51.1
+          "solidCm3": 104.76,
+          "areaCm2": 362.0,
+          "estGrams": 70.0
         },
         {
           "file": "sakura_blossom.stl",
           "solidCm3": 0.11,
-          "areaCm2": 2.24,
+          "areaCm2": 2.26,
           "estGrams": 0.13
         }
       ],
-      "scannedGrams": 226.3,
-      "scannedPrintHours": 9.0
+      "scannedGrams": 224.2,
+      "scannedPrintHours": 8.6
     },
     {
       "id": "bbmp_signboard",
