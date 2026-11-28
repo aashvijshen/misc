@@ -34,6 +34,7 @@ tools/mapmaker/**/.cache/**
 !projects/**/*.FCStd
 !projects/**/*.step
 !projects/**/*.stl
+!projects/vipaka/**/*.3mf
 !projects/bbmp_signboard/build_bbmp.py
 !projects/bbmp_signboard/sign_customizer.py
 !projects/maker_logo_stamp/maker_logo.svg
